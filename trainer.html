@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Poker Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #00e676; --red: #ff1744; --gold: #ffd600;
+    --bg: #0a0a0a; --surface: #141414; --border: #2a2a2a;
+    --text: #f0f0f0; --muted: #555;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+
+  /* HEADER */
+  header {
+    width: 100%;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1400 50%, #0f0f0f 100%);
+    border-bottom: 1px solid #2a2200;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '♠ ♥ ♦ ♣';
+    position: absolute;
+    top: 12px; right: 20px;
+    font-size: 1rem;
+    color: rgba(255,214,0,0.1);
+    letter-spacing: 8px;
+    pointer-events: none;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    padding: 22px 24px 16px;
+  }
+  .header-logo { display: flex; flex-direction: column; gap: 2px; }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    letter-spacing: 8px;
+    color: var(--gold);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(255,214,0,0.25);
+  }
+  .header-sub {
+    font-size: 0.5rem;
+    color: rgba(255,214,0,0.35);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+  }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; padding: 0 20px; }
+  .tab {
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: rgba(255,214,0,0.3);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+  .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+  .tab:hover:not(.active) { color: rgba(255,214,0,0.6); }
+
+  /* SCORE BAR */
+  .score-bar { width: 100%; padding: 12px 24px; display: flex; gap: 24px; align-items: center; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .score-item { display: flex; flex-direction: column; gap: 2px; }
+  .score-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .score-value { font-size: 1.4rem; font-weight: 500; }
+  .score-value.correct { color: var(--green); }
+  .score-value.wrong { color: var(--red); }
+  .score-value.pct { color: var(--gold); }
+  .progress-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; width: 0%; }
+
+  /* MAIN */
+  .main { flex: 1; width: 100%; max-width: 480px; padding: 32px 24px; display: flex; flex-direction: column; gap: 28px; }
+  .tab-content { display: none; flex-direction: column; gap: 28px; }
+  .tab-content.active { display: flex; }
+
+  /* SHARED */
+  .section-label { font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: -16px; }
+  .position-filter { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pos-chip { padding: 6px 12px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; transition: all 0.15s ease; color: var(--muted); background: transparent; font-family: 'DM Mono', monospace; }
+  .pos-chip.active { border-color: var(--gold); color: var(--gold); background: rgba(255,214,0,0.06); }
+  .position-tag { display: inline-block; font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 2px; }
+  .position-tag span { color: var(--gold); font-weight: 500; }
+  .hand-display { display: flex; gap: 12px; align-items: center; }
+  .card { width: 72px; height: 100px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+  .card.red-card { color: #ff4444; }
+  .card.black-card { color: #f0f0f0; }
+  .card .suit { font-size: 0.9rem; position: absolute; bottom: 8px; right: 8px; font-family: 'DM Mono', monospace; }
+  .hand-info { display: flex; flex-direction: column; gap: 6px; }
+  .hand-combo { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 4px; line-height: 1; }
+  .hand-type { font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .question { font-size: 0.8rem; color: var(--muted); letter-spacing: 1px; line-height: 1.6; }
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn { padding: 20px; border: none; border-radius: 4px; font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 3px; cursor: pointer; transition: all 0.12s ease; }
+  .btn:active { transform: scale(0.96); }
+  .btn-raise { background: var(--green); color: #000; }
+  .btn-fold { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-call { background: var(--green); color: #000; }
+  .btn-nocall { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-raise:hover, .btn-call:hover { background: #00ff88; }
+  .btn-fold:hover, .btn-nocall:hover { border-color: #555; }
+  .feedback { padding: 16px 20px; border-radius: 4px; font-size: 0.8rem; letter-spacing: 1px; line-height: 1.8; opacity: 0; transform: translateY(6px); transition: all 0.2s ease; min-height: 60px; }
+  .feedback.show { opacity: 1; transform: translateY(0); }
+  .feedback.correct-fb { background: rgba(0,230,118,0.08); border: 1px solid rgba(0,230,118,0.3); color: var(--green); }
+  .feedback.wrong-fb { background: rgba(255,23,68,0.08); border: 1px solid rgba(255,23,68,0.3); color: var(--red); }
+  .next-btn { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: all 0.15s ease; display: none; }
+  .next-btn.show { display: block; }
+  .next-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* POT ODDS SPECIFIC */
+  .pot-scenario { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .pot-row { display: flex; justify-content: space-between; align-items: center; }
+  .pot-row-label { font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .pot-row-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px; color: var(--text); }
+  .pot-row-value.highlight { color: var(--gold); }
+  .pot-divider { height: 1px; background: var(--border); }
+  .equity-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .equity-btn { padding: 16px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; cursor: pointer; transition: all 0.15s ease; }
+  .equity-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .equity-btn:active { transform: scale(0.96); }
+  .equity-btn.selected-correct { background: rgba(0,230,118,0.15); border-color: var(--green); color: var(--green); }
+  .equity-btn.selected-wrong { background: rgba(255,23,68,0.15); border-color: var(--red); color: var(--red); }
+  .equity-btn.reveal-correct { background: rgba(0,230,118,0.08); border-color: var(--green); color: var(--green); }
+  .mode-toggle { display: flex; gap: 8px; }
+  .mode-chip { padding: 6px 14px; border: 1px solid var(--border); border-radius: 2px; font-size: 0.65rem; letter-spacing: 2px; cursor: pointer; transition: all 0.15s ease; color: var(--muted); background: transparent; font-family: 'DM Mono', monospace; }
+  .mode-chip.active { border-color: var(--gold); color: var(--gold); background: rgba(255,214,0,0.06); }
+
+  /* OUTS SPECIFIC */
+  .draw-scenario { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .draw-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: var(--gold); }
+  .draw-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.7; }
+  .draw-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .draw-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .draw-meta-label { font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .draw-meta-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--text); }
+  .street-toggle { display: flex; gap: 8px; }
+
+  @keyframes flash-green { 0% { box-shadow: 0 0 0 0 rgba(0,230,118,0.4); } 100% { box-shadow: 0 0 0 20px rgba(0,230,118,0); } }
+  @keyframes flash-red { 0% { box-shadow: 0 0 0 0 rgba(255,23,68,0.4); } 100% { box-shadow: 0 0 0 20px rgba(255,23,68,0); } }
+  .flash-correct { animation: flash-green 0.4s ease-out; }
+  .flash-wrong { animation: flash-red 0.4s ease-out; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="header-logo">
+      <h1>POKER TRAINER</h1>
+      <div class="header-sub">Preflop · Pot Odds · Outs</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('preflop')">♠ Preflop</button>
+    <button class="tab" onclick="switchTab('potodds')">$ Pot Odds</button>
+    <button class="tab" onclick="switchTab('outs')">◈ Outs</button>
+  </div>
+</header>
+
+<div class="score-bar">
+  <div class="score-item"><div class="score-label">Correct</div><div class="score-value correct" id="scoreCorrect">0</div></div>
+  <div class="score-item"><div class="score-label">Wrong</div><div class="score-value wrong" id="scoreWrong">0</div></div>
+  <div class="score-item"><div class="score-label">Acc</div><div class="score-value pct" id="scorePct">—</div></div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="main">
+
+  <!-- PREFLOP TAB -->
+  <div class="tab-content active" id="tab-preflop">
+    <div class="section-label">Filter positions</div>
+    <div class="position-filter" id="posFilter"></div>
+    <div class="position-tag">Position: <span id="posLabel">BTN</span></div>
+    <div class="hand-display">
+      <div class="card black-card" id="card1"><span id="card1rank">A</span><span class="suit" id="card1suit">♠</span></div>
+      <div class="card red-card" id="card2"><span id="card2rank">K</span><span class="suit" id="card2suit">♥</span></div>
+      <div class="hand-info">
+        <div class="hand-combo" id="handCombo">AKs</div>
+        <div class="hand-type" id="handType">Suited</div>
+      </div>
+    </div>
+    <div class="question">Should you open raise or fold?</div>
+    <div class="buttons">
+      <button class="btn btn-raise" id="btnRaise" onclick="pfAnswer('r')">Raise</button>
+      <button class="btn btn-fold" id="btnFold" onclick="pfAnswer('f')">Fold</button>
+    </div>
+    <div class="feedback" id="pfFeedback"></div>
+    <button class="next-btn" id="pfNextBtn" onclick="nextHand()">Next hand →</button>
+  </div>
+
+  <!-- POT ODDS TAB -->
+  <div class="tab-content" id="tab-potodds">
+    <div class="section-label">Mode</div>
+    <div class="mode-toggle">
+      <button class="mode-chip active" id="modeEquity" onclick="setMode('equity')">Equity needed</button>
+      <button class="mode-chip" id="modeCall" onclick="setMode('call')">Should I call?</button>
+    </div>
+
+    <div class="pot-scenario" id="potScenario">
+      <div class="pot-row">
+        <div class="pot-row-label">Pot size</div>
+        <div class="pot-row-value highlight" id="potSize">$80</div>
+      </div>
+      <div class="pot-divider"></div>
+      <div class="pot-row">
+        <div class="pot-row-label">Bet to call</div>
+        <div class="pot-row-value highlight" id="betSize">$40</div>
+      </div>
+      <div class="pot-divider"></div>
+      <div class="pot-row">
+        <div class="pot-row-label">Total pot if you call</div>
+        <div class="pot-row-value" id="totalPot">$160</div>
+      </div>
+      <div class="pot-row" id="equityGivenRow" style="display:none">
+        <div class="pot-row-label">Your estimated equity</div>
+        <div class="pot-row-value highlight" id="equityGiven">35%</div>
+      </div>
+    </div>
+
+    <!-- Equity needed mode: pick closest % -->
+    <div id="equityQuestion">
+      <div class="question" id="poQuestion">What % equity do you need to call?</div>
+    </div>
+    <div class="equity-options" id="equityOptions"></div>
+
+    <!-- Call mode: call or fold -->
+    <div class="buttons" id="callButtons" style="display:none">
+      <button class="btn btn-call" id="btnCall" onclick="poAnswer('call')">Call</button>
+      <button class="btn btn-nocall" id="btnNocall" onclick="poAnswer('fold')">Fold</button>
+    </div>
+
+    <div class="feedback" id="poFeedback"></div>
+    <button class="next-btn" id="poNextBtn" onclick="nextPotOdds()">Next hand →</button>
+  </div>
+
+  <!-- OUTS TAB -->
+  <div class="tab-content" id="tab-outs">
+    <div class="section-label">Street</div>
+    <div class="street-toggle">
+      <button class="mode-chip active" id="streetFlop" onclick="setStreet('flop')">Flop (×4)</button>
+      <button class="mode-chip" id="streetTurn" onclick="setStreet('turn')">Turn (×2)</button>
+      <button class="mode-chip" id="streetBoth" onclick="setStreet('both')">Mixed</button>
+    </div>
+
+    <div class="draw-scenario">
+      <div class="draw-title" id="drawName">Flush Draw</div>
+      <div class="draw-desc" id="drawDesc">You have four cards to a flush. You need one more card of the same suit to complete it.</div>
+      <div class="pot-divider"></div>
+      <div class="draw-meta">
+        <div class="draw-meta-item">
+          <div class="draw-meta-label">Your outs</div>
+          <div class="draw-meta-value" id="drawOuts">9</div>
+        </div>
+        <div class="draw-meta-item">
+          <div class="draw-meta-label">Street</div>
+          <div class="draw-meta-value" id="drawStreet">Flop</div>
+        </div>
+        <div class="draw-meta-item">
+          <div class="draw-meta-label">Multiplier</div>
+          <div class="draw-meta-value" id="drawMultiplier">×4</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="question">Using the rule of 2 & 4, what is your approximate equity?</div>
+    <div class="equity-options" id="outsOptions"></div>
+
+    <div class="feedback" id="outsFeedback"></div>
+    <button class="next-btn" id="outsNextBtn" onclick="nextOuts()">Next hand →</button>
+  </div>
+
+</div>
+
+<script>
+// ─── TAB SWITCHING ───────────────────────────────────────────────
+let currentTab = 'preflop';
+const scores = {
+  preflop: [0,0],
+  potodds: [0,0],
+  outs: [0,0],
+};
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['preflop','potodds','outs'][i] === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  updateScoreBar();
+}
+
+function updateScoreBar() {
+  const s = scores[currentTab];
+  const total = s[0]+s[1];
+  const pct = total ? Math.round(s[0]/total*100) : null;
+  document.getElementById('scoreCorrect').textContent = s[0];
+  document.getElementById('scoreWrong').textContent = s[1];
+  document.getElementById('scorePct').textContent = pct !== null ? pct+'%' : '—';
+  document.getElementById('progressFill').style.width = (pct||0)+'%';
+}
+
+function recordScore(tab, correct) {
+  if (correct) scores[tab][0]++; else scores[tab][1]++;
+  if (currentTab === tab) updateScoreBar();
+}
+
+// ─── PREFLOP TRAINER ─────────────────────────────────────────────
+const charts = {
+  "UTG": new Set(["AA","KK","QQ","JJ","TT","99","88","77","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","QJs","QTs","Q9s","Q8s","QJo","JTs","J9s","T9s","T8s","98s","87s","76s","65s","54s"]),
+  "MP":  new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","KTo","QJs","QTs","Q9s","Q8s","Q7s","QJo","QTo","JTs","J9s","J8s","JTo","T9s","T8s","98s","87s","76s","65s","54s"]),
+  "CO":  new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","KQo","KJo","KTo","K9o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","QJo","QTo","Q9o","JTs","J9s","J8s","J7s","JTo","J9o","T9s","T8s","T7s","T9o","98s","97s","87s","86s","76s","75s","65s","64s","54s","53s"]),
+  "BTN": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"]),
+  "SB":  new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"]),
+};
+
+const allHands = [];
+const ranks = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"];
+for (let i = 0; i < 13; i++) {
+  allHands.push(ranks[i]+ranks[i]);
+  for (let j = i+1; j < 13; j++) {
+    allHands.push(ranks[i]+ranks[j]+"o");
+    allHands.push(ranks[i]+ranks[j]+"s");
+  }
+}
+
+const suitSymbols = {s:"♠",h:"♥",d:"♦",c:"♣"};
+const redSuits = ["h","d"];
+let activePosFilter = new Set(["UTG","MP","CO","BTN","SB"]);
+let currentHand = "", currentPos = "";
+let pfAnswered = false;
+
+const posFilter = document.getElementById("posFilter");
+["UTG","MP","CO","BTN","SB"].forEach(pos => {
+  const chip = document.createElement("button");
+  chip.className = "pos-chip active";
+  chip.textContent = pos;
+  chip.onclick = () => {
+    if (activePosFilter.has(pos) && activePosFilter.size === 1) return;
+    if (activePosFilter.has(pos)) { activePosFilter.delete(pos); chip.classList.remove("active"); }
+    else { activePosFilter.add(pos); chip.classList.add("active"); }
+  };
+  posFilter.appendChild(chip);
+});
+
+function getHandType(hand) {
+  if (hand.length === 2) return "Pair";
+  return hand.endsWith("s") ? "Suited" : "Offsuit";
+}
+
+function renderHand(hand) {
+  const type = getHandType(hand);
+  const r1 = hand[0], r2 = hand[1]||hand[0];
+  let s1, s2;
+  if (type === "Suited") { const suits=["s","h","d","c"]; s1=s2=suits[Math.floor(Math.random()*4)]; }
+  else { s1=Math.random()>0.5?"s":"c"; s2=Math.random()>0.5?"h":"d"; }
+  document.getElementById("card1rank").textContent = r1;
+  document.getElementById("card1suit").textContent = suitSymbols[s1];
+  document.getElementById("card1").className = "card "+(redSuits.includes(s1)?"red-card":"black-card");
+  document.getElementById("card2rank").textContent = r2;
+  document.getElementById("card2suit").textContent = suitSymbols[s2];
+  document.getElementById("card2").className = "card "+(redSuits.includes(s2)?"red-card":"black-card");
+  document.getElementById("handCombo").textContent = hand;
+  document.getElementById("handType").textContent = type;
+}
+
+function nextHand() {
+  pfAnswered = false;
+  const positions = [...activePosFilter];
+  currentPos = positions[Math.floor(Math.random()*positions.length)];
+  currentHand = allHands[Math.floor(Math.random()*allHands.length)];
+  document.getElementById("posLabel").textContent = currentPos;
+  renderHand(currentHand);
+  document.getElementById("pfFeedback").className = "feedback";
+  document.getElementById("pfFeedback").textContent = "";
+  document.getElementById("pfNextBtn").className = "next-btn";
+  document.getElementById("btnRaise").disabled = false;
+  document.getElementById("btnFold").disabled = false;
+}
+
+function pfAnswer(choice) {
+  if (pfAnswered) return;
+  pfAnswered = true;
+  const shouldRaise = charts[currentPos].has(currentHand);
+  const correct = (choice==="r"&&shouldRaise)||(choice==="f"&&!shouldRaise);
+  recordScore('preflop', correct);
+  const fb = document.getElementById("pfFeedback");
+  fb.className = "feedback "+(correct?"correct-fb":"wrong-fb")+" show";
+  fb.textContent = correct
+    ? `✓ Correct. ${currentHand} is ${shouldRaise?"an open raise":"a fold"} from ${currentPos}.`
+    : `✗ Wrong. ${currentHand} is ${shouldRaise?"an open raise":"a fold"} from ${currentPos}.`;
+  ["card1","card2"].forEach(id => {
+    document.getElementById(id).classList.add(correct?"flash-correct":"flash-wrong");
+    setTimeout(()=>document.getElementById(id).classList.remove("flash-correct","flash-wrong"),400);
+  });
+  document.getElementById("btnRaise").disabled = true;
+  document.getElementById("btnFold").disabled = true;
+  document.getElementById("pfNextBtn").className = "next-btn show";
+}
+
+// ─── POT ODDS TRAINER ────────────────────────────────────────────
+let poMode = 'equity'; // 'equity' or 'call'
+let currentPot, currentBet, currentEquityNeeded, currentEquityGiven, poAnswered;
+
+function setMode(mode) {
+  poMode = mode;
+  document.getElementById('modeEquity').classList.toggle('active', mode==='equity');
+  document.getElementById('modeCall').classList.toggle('active', mode==='call');
+  nextPotOdds();
+}
+
+function calcEquityNeeded(pot, bet) {
+  // equity needed = bet / (pot + bet)
+  return bet / (pot + bet) * 100;
+}
+
+function nextPotOdds() {
+  poAnswered = false;
+  document.getElementById("poFeedback").className = "feedback";
+  document.getElementById("poFeedback").textContent = "";
+  document.getElementById("poNextBtn").className = "next-btn";
+
+  // Generate realistic pot/bet scenarios
+  const potSizes = [20,30,40,50,60,80,100,120,150,200];
+  const betFractions = [0.25, 0.33, 0.5, 0.67, 0.75, 1.0, 1.5];
+  currentPot = potSizes[Math.floor(Math.random()*potSizes.length)];
+  const frac = betFractions[Math.floor(Math.random()*betFractions.length)];
+  currentBet = Math.round(currentPot * frac / 5) * 5 || 5;
+  const totalPot = currentPot + currentBet;
+  currentEquityNeeded = calcEquityNeeded(currentPot, currentBet);
+
+  document.getElementById("potSize").textContent = "$"+currentPot;
+  document.getElementById("betSize").textContent = "$"+currentBet;
+  document.getElementById("totalPot").textContent = "$"+(totalPot + currentBet);
+
+  if (poMode === 'equity') {
+    document.getElementById("equityGivenRow").style.display = "none";
+    document.getElementById("equityOptions").style.display = "grid";
+    document.getElementById("callButtons").style.display = "none";
+    document.getElementById("poQuestion").textContent = "What % equity do you need to breakeven on a call?";
+    buildEquityOptions(currentEquityNeeded);
+  } else {
+    // call mode: give them equity, ask should they call
+    const variance = [-15,-10,-7,-5,5,7,10,15];
+    const offset = variance[Math.floor(Math.random()*variance.length)];
+    currentEquityGiven = Math.max(5, Math.min(95, Math.round(currentEquityNeeded + offset)));
+    document.getElementById("equityGivenRow").style.display = "flex";
+    document.getElementById("equityGiven").textContent = currentEquityGiven+"%";
+    document.getElementById("equityOptions").style.display = "none";
+    document.getElementById("callButtons").style.display = "grid";
+    document.getElementById("poQuestion").textContent = "You have "+currentEquityGiven+"% equity. Should you call?";
+    document.getElementById("btnCall").disabled = false;
+    document.getElementById("btnNocall").disabled = false;
+  }
+}
+
+function buildEquityOptions(correct) {
+  const rounded = Math.round(correct);
+  // Generate 4 plausible options including the correct one
+  const offsets = [-10, -5, 5, 10, -15, 15, -8, 8].sort(()=>Math.random()-0.5);
+  const options = new Set([rounded]);
+  for (const o of offsets) {
+    if (options.size >= 4) break;
+    const v = Math.max(5, Math.min(60, rounded + o));
+    if (Math.abs(v - rounded) >= 3) options.add(v);
+  }
+  const arr = [...options].sort((a,b)=>a-b);
+  const container = document.getElementById("equityOptions");
+  container.innerHTML = "";
+  arr.forEach(val => {
+    const btn = document.createElement("button");
+    btn.className = "equity-btn";
+    btn.textContent = val+"%";
+    btn.onclick = () => equityAnswer(val, rounded, btn, arr);
+    container.appendChild(btn);
+  });
+}
+
+function equityAnswer(chosen, correct, btn, allVals) {
+  if (poAnswered) return;
+  poAnswered = true;
+  const isCorrect = Math.abs(chosen - correct) <= 2; // allow 2% tolerance
+  recordScore('potodds', isCorrect);
+  // Highlight buttons
+  document.querySelectorAll('.equity-btn').forEach(b => {
+    const v = parseInt(b.textContent);
+    if (Math.abs(v - correct) <= 2) b.classList.add('reveal-correct');
+  });
+  btn.classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+  const fb = document.getElementById("poFeedback");
+  fb.className = "feedback "+(isCorrect?"correct-fb":"wrong-fb")+" show";
+  const formula = `call / (pot + call) = $${currentBet} / $${currentPot+currentBet} = ${correct}%`;
+  fb.textContent = isCorrect
+    ? `✓ Correct! You need ${correct}% equity.\n${formula}`
+    : `✗ Wrong. You need ${correct}% equity.\n${formula}`;
+  document.getElementById("poNextBtn").className = "next-btn show";
+}
+
+function poAnswer(choice) {
+  if (poAnswered) return;
+  poAnswered = true;
+  const shouldCall = currentEquityGiven > currentEquityNeeded;
+  const correct = (choice==="call"&&shouldCall)||(choice==="fold"&&!shouldCall);
+  recordScore('potodds', correct);
+  document.getElementById("btnCall").disabled = true;
+  document.getElementById("btnNocall").disabled = true;
+  const fb = document.getElementById("poFeedback");
+  fb.className = "feedback "+(correct?"correct-fb":"wrong-fb")+" show";
+  const needed = Math.round(currentEquityNeeded);
+  if (correct) {
+    fb.textContent = shouldCall
+      ? `✓ Correct! Call. You have ${currentEquityGiven}% equity, you need ${needed}%. Profitable by ${currentEquityGiven-needed}%.`
+      : `✓ Correct! Fold. You have ${currentEquityGiven}% equity but need ${needed}%. Not profitable.`;
+  } else {
+    fb.textContent = shouldCall
+      ? `✗ Wrong. You should call. You have ${currentEquityGiven}% equity, only need ${needed}%.`
+      : `✗ Wrong. You should fold. You only have ${currentEquityGiven}% equity but need ${needed}%.`;
+  }
+  document.getElementById("poNextBtn").className = "next-btn show";
+}
+
+// ─── OUTS TRAINER ────────────────────────────────────────────────
+const draws = [
+  { name: "Flush Draw",          desc: "You have four cards to a flush. You need one more card of the same suit.",                         outs: 9 },
+  { name: "Open-Ended Straight", desc: "You have four consecutive cards (e.g. 7-8-9-T). Either end completes your straight.",             outs: 8 },
+  { name: "Gutshot Straight",    desc: "You have four cards with a gap in the middle (e.g. 7-8-T-J). Only one rank completes it.",         outs: 4 },
+  { name: "Two Overcards",       desc: "You have two cards higher than the board. Either pairing gives you top pair.",                     outs: 6 },
+  { name: "One Overcard",        desc: "You have one card higher than the board. Pairing it gives you top pair.",                          outs: 3 },
+  { name: "Flush + Gutshot",     desc: "You have a flush draw AND a gutshot straight draw. Your draws overlap a little.",                  outs: 12 },
+  { name: "Flush + OESD",        desc: "You have both a flush draw and an open-ended straight draw — a monster draw.",                     outs: 15 },
+  { name: "Set (trips)",         desc: "You have a pocket pair and one matching card on the board. One more card gives you quads.",        outs: 1 },
+  { name: "Two Pair → Full House",desc: "You have two pair. You have 4 outs to make a full house (any card that pairs the board).",        outs: 4 },
+  { name: "Pair → Trips",        desc: "You have top pair. Three outs remain to hit trips (the other copies of your pair card).",          outs: 2 },
+];
+
+let outsStreet = 'flop';
+let outsAnswered = false;
+let currentDraw = null;
+
+function setStreet(s) {
+  outsStreet = s;
+  ['flop','turn','both'].forEach(x => document.getElementById('street'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active', x===s));
+  nextOuts();
+}
+
+function nextOuts() {
+  outsAnswered = false;
+  document.getElementById("outsFeedback").className = "feedback";
+  document.getElementById("outsFeedback").textContent = "";
+  document.getElementById("outsNextBtn").className = "next-btn";
+
+  currentDraw = draws[Math.floor(Math.random()*draws.length)];
+  const street = outsStreet === 'both'
+    ? (Math.random()>0.5 ? 'flop' : 'turn')
+    : outsStreet;
+  const multiplier = street === 'flop' ? 4 : 2;
+  const correctEquity = currentDraw.outs * multiplier;
+
+  document.getElementById("drawName").textContent = currentDraw.name;
+  document.getElementById("drawDesc").textContent = currentDraw.desc;
+  document.getElementById("drawOuts").textContent = currentDraw.outs;
+  document.getElementById("drawStreet").textContent = street.charAt(0).toUpperCase()+street.slice(1);
+  document.getElementById("drawMultiplier").textContent = "×"+multiplier;
+
+  // Store for answer checking
+  currentDraw._correctEquity = correctEquity;
+  currentDraw._multiplier = multiplier;
+  currentDraw._street = street;
+
+  buildOutsOptions(correctEquity);
+}
+
+function buildOutsOptions(correct) {
+  const offsets = [-8,-6,-4,4,6,8,-10,10].sort(()=>Math.random()-0.5);
+  const options = new Set([correct]);
+  for (const o of offsets) {
+    if (options.size >= 4) break;
+    const v = Math.max(2, Math.min(70, correct + o));
+    if (Math.abs(v-correct) >= 3) options.add(v);
+  }
+  const arr = [...options].sort((a,b)=>a-b);
+  const container = document.getElementById("outsOptions");
+  container.innerHTML = "";
+  arr.forEach(val => {
+    const btn = document.createElement("button");
+    btn.className = "equity-btn";
+    btn.textContent = "~"+val+"%";
+    btn.onclick = () => outsAnswer(val, correct, btn);
+    container.appendChild(btn);
+  });
+}
+
+function outsAnswer(chosen, correct, btn) {
+  if (outsAnswered) return;
+  outsAnswered = true;
+  const isCorrect = Math.abs(chosen - correct) <= 2;
+  recordScore('outs', isCorrect);
+  document.querySelectorAll('#outsOptions .equity-btn').forEach(b => {
+    if (parseInt(b.textContent) === correct) b.classList.add('reveal-correct');
+  });
+  btn.classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+  const fb = document.getElementById("outsFeedback");
+  fb.className = "feedback "+(isCorrect?"correct-fb":"wrong-fb")+" show";
+  const m = currentDraw._multiplier;
+  fb.textContent = isCorrect
+    ? `✓ Correct! ${currentDraw.outs} outs × ${m} = ~${correct}% equity on the ${currentDraw._street}.`
+    : `✗ Wrong. ${currentDraw.outs} outs × ${m} = ~${correct}% equity on the ${currentDraw._street}.`;
+  document.getElementById("outsNextBtn").className = "next-btn show";
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
+nextHand();
+nextPotOdds();
+nextOuts();
+</script>
+</body>
+</html>
