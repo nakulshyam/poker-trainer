@@ -1,1182 +1,600 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Poker Trainer</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --green: #00e676;
-  --red: #ff1744;
-  --gold: #ffd600;
-  --gold-dim: rgba(255,214,0,0.15);
-  --bg: #080808;
-  --surface: #111;
-  --surface2: #181818;
-  --border: #222;
-  --border2: #2e2e2e;
-  --text: #f0f0f0;
-  --muted: #4a4a4a;
-  --muted2: #666;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#00e676;--red:#ff4466;--gold:#ffd600;--gold-dim:rgba(255,214,0,0.1);
+  --bg:#080808;--surface:#101010;--s2:#161616;--s3:#1c1c1c;
+  --b1:#1a1a1a;--b2:#262626;--b3:#333;
+  --text:#efefef;--muted:#555;--muted2:#777;
+  --radius:10px;
 }
+html{-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Mono', monospace;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
-}
-
-/* ── HEADER ─────────────────────────────────────── */
-header {
-  width: 100%;
-  background: #0c0c0c;
-  border-bottom: 1px solid #1e1a00;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,214,0,0.4), transparent);
-}
-
-.header-bg {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 20% 50%, rgba(255,214,0,0.04) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.header-suits {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  display: flex;
-  align-items: center;
-  padding-right: 20px;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.header-suits span {
-  font-size: 1.6rem;
-  opacity: 0.04;
-}
-
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 14px;
-  position: relative;
-}
-
-.header-logo { display: flex; flex-direction: column; gap: 3px; }
-
-header h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.8rem;
-  letter-spacing: 10px;
-  background: linear-gradient(135deg, #ffd600 0%, #ffb300 50%, #ffd600 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-}
-
-.header-sub {
-  font-size: 0.48rem;
-  color: rgba(255,214,0,0.3);
-  letter-spacing: 5px;
-  text-transform: uppercase;
-}
-
+/* HEADER */
+header{width:100%;background:var(--surface);border-bottom:1px solid var(--b1);display:flex;flex-direction:column;position:sticky;top:0;z-index:10}
+.h-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 9px}
+.h-left{display:flex;align-items:center;gap:10px}
+.h-pip{width:34px;height:34px;background:var(--s3);border:1px solid var(--b2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:var(--text)}
+.h-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:5px;color:var(--text);line-height:1}
+.h-sub{font-size:0.4rem;color:var(--muted);letter-spacing:4px;text-transform:uppercase;margin-top:2px}
+.h-right{display:flex;gap:4px}
+.h-suit{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:0.8rem;border:1px solid var(--b2);color:var(--muted)}
+.h-suit.r{color:#cc3344;border-color:rgba(204,51,68,0.18);background:rgba(204,51,68,0.04)}
 
 /* TABS */
-.tabs { display: flex; padding: 0 20px; gap: 4px; }
-.tab {
-  padding: 10px 16px 12px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  color: var(--muted2);
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.tab-icon { font-size: 0.8rem; }
-.tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
-.tab:hover:not(.active) { color: rgba(255,214,0,0.5); }
+.tabs{display:flex;border-top:1px solid var(--b1);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:0;padding:10px 4px 11px;font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted2);border-bottom:2px solid transparent;transition:all 0.18s;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:4px}
+.ti{font-size:0.72rem}
+.tab.active{color:var(--gold);border-bottom:2px solid var(--gold);background:rgba(255,214,0,0.015)}
+.tab:hover:not(.active){color:rgba(255,214,0,0.4)}
 
-/* ── SCORE BAR ───────────────────────────────────── */
-.score-bar {
-  width: 100%;
-  padding: 14px 24px;
-  display: flex;
-  gap: 0;
-  align-items: stretch;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
+/* SCORE BAR */
+.sbar{width:100%;padding:10px 18px;display:flex;align-items:center;border-bottom:1px solid var(--b1);background:var(--surface)}
+.si{display:flex;flex-direction:column;gap:2px;padding-right:13px;border-right:1px solid var(--b2);margin-right:13px}
+.si:last-of-type{border-right:none;margin-right:0;padding-right:0}
+.sl{font-size:0.4rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.sv{font-size:1.25rem;font-weight:500;line-height:1}
+.sv.c{color:var(--green)}.sv.w{color:var(--red)}.sv.p{color:var(--gold)}
+.pw{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.pl{font-size:0.38rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.pt{height:2px;background:var(--b2);border-radius:2px;overflow:hidden}
+.pf{height:100%;background:linear-gradient(90deg,#cc9900,var(--gold));border-radius:2px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);width:0%}
 
-.score-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 0 20px 0 0;
-  border-right: 1px solid var(--border2);
-  margin-right: 20px;
-}
+/* MAIN */
+.main{flex:1;width:100%;max-width:500px;padding:16px 16px 64px;display:flex;flex-direction:column;gap:14px}
+.tc{display:none;flex-direction:column;gap:14px}
+.tc.active{display:flex}
 
-.score-item:last-of-type { border-right: none; }
-
-.score-label {
-  font-size: 0.5rem;
-  color: var(--muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.score-value { font-size: 1.5rem; font-weight: 500; line-height: 1; }
-.score-value.correct { color: var(--green); }
-.score-value.wrong { color: var(--red); }
-.score-value.pct { color: var(--gold); }
-
-.progress-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-}
-
-.progress-label {
-  font-size: 0.48rem;
-  color: var(--muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.progress-track {
-  height: 3px;
-  background: var(--border2);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ffb300, #ffd600);
-  border-radius: 2px;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 0%;
-}
-
-/* ── MAIN ────────────────────────────────────────── */
-.main {
-  flex: 1;
-  width: 100%;
-  max-width: 480px;
-  padding: 28px 20px 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.tab-content { display: none; flex-direction: column; gap: 24px; }
-.tab-content.active { display: flex; }
-
-/* ── SHARED COMPONENTS ───────────────────────────── */
-.section-label {
-  font-size: 0.52rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: -12px;
-}
-
-.chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
-
-.chip {
-  padding: 5px 12px;
-  border: 1px solid var(--border2);
-  border-radius: 20px;
-  font-size: 0.6rem;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  color: var(--muted2);
-  background: transparent;
-  font-family: 'DM Mono', monospace;
-}
-
-.chip.active {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: var(--gold-dim);
-}
-
-/* POSITION TAG */
-.position-tag {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.6rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted2);
-}
-
-.position-tag .pos-value {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: 3px;
-  color: var(--gold);
-  background: var(--gold-dim);
-  border: 1px solid rgba(255,214,0,0.2);
-  padding: 2px 10px;
-  border-radius: 3px;
-}
+/* SHARED */
+.sec-lbl{font-size:0.42rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px}
+.cr{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:7px 14px;border:1px solid var(--b2);border-radius:20px;font-size:0.52rem;letter-spacing:1px;cursor:pointer;transition:all 0.15s;color:var(--muted2);background:transparent;font-family:'DM Mono',monospace}
+.chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
 
 /* CARDS */
-.hand-display { display: flex; gap: 14px; align-items: center; }
+.card{background:linear-gradient(150deg,#1e1e1e,#141414);border:1px solid #2c2c2c;border-radius:9px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;position:relative;box-shadow:0 4px 14px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.03);flex-shrink:0}
+.card.lg{width:64px;height:90px;padding:7px 8px}
+.card.sm{width:50px;height:70px;padding:5px 6px;border-radius:7px}
+.cr-rank{font-family:'Bebas Neue',sans-serif;line-height:1}
+.card.lg .cr-rank{font-size:1.75rem}
+.card.sm .cr-rank{font-size:1.35rem}
+.cs-top{line-height:1;margin-top:-2px}
+.card.lg .cs-top{font-size:0.78rem}
+.card.sm .cs-top{font-size:0.64rem}
+.cs-ctr{position:absolute;opacity:0.11}
+.card.lg .cs-ctr{bottom:6px;right:7px;font-size:1.4rem}
+.card.sm .cs-ctr{bottom:5px;right:5px;font-size:1rem}
+.card.red .cr-rank,.card.red .cs-top{color:#ff5555}
+.card.red .cs-ctr{color:#ff5555;opacity:0.13}
+.card.blk .cr-rank,.card.blk .cs-top{color:#e0e0e0}
+.card.blk .cs-ctr{color:#e0e0e0}
 
-.card {
-  width: 76px;
-  height: 106px;
-  background: linear-gradient(145deg, #1e1e1e, #161616);
-  border: 1px solid #2e2e2e;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 8px 10px;
-  position: relative;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-}
+/* PREFLOP */
+.hdisp{display:flex;gap:10px;align-items:center}
+.hinfo{display:flex;flex-direction:column;gap:3px;padding-left:4px}
+.hcombo{font-family:'Bebas Neue',sans-serif;font-size:2.7rem;letter-spacing:5px;line-height:1}
+.htype{font-size:0.44rem;color:var(--muted2);letter-spacing:3px;text-transform:uppercase}
+.pos-tag{display:flex;align-items:center;gap:8px;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted2)}
+.pos-val{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(255,214,0,0.15);padding:2px 10px;border-radius:3px}
 
-.card-rank {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2rem;
-  line-height: 1;
-}
+/* SCENARIO BOXES */
+.sbox{background:var(--surface);border:1px solid var(--b2);border-radius:var(--radius);overflow:hidden}
+.sbox-hdr{padding:10px 15px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
+.sbox-ttl{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--gold)}
+.sbox-tag{font-size:0.4rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border:1px solid var(--b2);padding:3px 8px;border-radius:4px}
+.sbox-body{padding:14px 15px;display:flex;flex-direction:column;gap:12px}
+.rlbl{font-size:0.4rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cards-row{display:flex;gap:7px;flex-wrap:wrap}
+.cdiv{display:flex;align-items:center;gap:8px}
+.cdiv::before,.cdiv::after{content:'';flex:1;height:1px;background:var(--b2)}
+.cdiv span{font-size:0.4rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.sit-txt{font-size:0.6rem;color:var(--muted2);line-height:1.9;padding-top:2px}
 
-.card-suit-top {
-  font-size: 0.9rem;
-  line-height: 1;
-  margin-top: -2px;
-}
-
-.card-suit-center {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  font-size: 1.6rem;
-  opacity: 0.15;
-}
-
-.card.red-card .card-rank,
-.card.red-card .card-suit-top { color: #ff4d4d; }
-.card.red-card .card-suit-center { color: #ff4d4d; }
-
-.card.black-card .card-rank,
-.card.black-card .card-suit-top { color: #e8e8e8; }
-.card.black-card .card-suit-center { color: #e8e8e8; }
-
-.hand-info { display: flex; flex-direction: column; gap: 4px; padding-left: 4px; }
-
-.hand-combo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 3.2rem;
-  letter-spacing: 5px;
-  line-height: 1;
-  color: var(--text);
-}
-
-.hand-type {
-  font-size: 0.55rem;
-  color: var(--muted2);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
+/* POT ODDS BOX */
+.pobox{background:var(--surface);border:1px solid var(--b2);border-radius:var(--radius);overflow:hidden}
+.por{display:flex;justify-content:space-between;align-items:center;padding:11px 15px;border-bottom:1px solid var(--b1)}
+.por:last-child{border-bottom:none}
+.por-lbl{font-size:0.46rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted2)}
+.por-val{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:2px}
+.por-val.gld{color:var(--gold)}.por-val.grn{color:var(--green)}.por-val.wht{color:var(--text)}
 
 /* QUESTION */
-.question {
-  font-size: 0.72rem;
-  color: var(--muted2);
-  letter-spacing: 1px;
-  line-height: 1.7;
-  padding: 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  border-left: 3px solid rgba(255,214,0,0.3);
-}
+.question{font-size:0.64rem;color:var(--muted2);letter-spacing:0.2px;line-height:1.9;padding:12px 14px;background:var(--surface);border:1px solid var(--b1);border-radius:7px;border-left:3px solid rgba(255,214,0,0.18)}
 
 /* BUTTONS */
-.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:18px 10px;border:none;border-radius:var(--radius);font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:3px;cursor:pointer;transition:all 0.14s}
+.btn:active{transform:scale(0.96)}
+.btn-y{background:linear-gradient(135deg,#00b84a,#00e676);color:#000;box-shadow:0 4px 14px rgba(0,230,118,0.14)}
+.btn-n{background:var(--s2);color:var(--text);border:1px solid var(--b2)}
+.btn-y:hover{box-shadow:0 4px 20px rgba(0,230,118,0.26)}
+.btn-n:hover{border-color:var(--b3);background:var(--s3)}
 
-.btn {
-  padding: 18px 12px;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
-  letter-spacing: 3px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0);
-  transition: background 0.1s;
-}
-
-.btn:active { transform: scale(0.97); }
-.btn:active::after { background: rgba(0,0,0,0.15); }
-
-.btn-raise, .btn-call {
-  background: linear-gradient(135deg, #00c853, #00e676);
-  color: #000;
-  box-shadow: 0 4px 16px rgba(0,230,118,0.2);
-}
-
-.btn-fold, .btn-nocall {
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--border2);
-}
-
-.btn-raise:hover, .btn-call:hover { box-shadow: 0 4px 20px rgba(0,230,118,0.35); }
-.btn-fold:hover, .btn-nocall:hover { border-color: #444; background: #1e1e1e; }
+/* MC BUTTONS */
+.mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mc-btn{padding:16px 8px;border:1px solid var(--b2);border-radius:var(--radius);background:var(--s2);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;cursor:pointer;transition:all 0.14s;text-align:center}
+.mc-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.mc-btn:active{transform:scale(0.96)}
+.mc-btn.ok{background:rgba(0,230,118,0.1);border-color:var(--green);color:var(--green)}
+.mc-btn.bad{background:rgba(255,68,102,0.1);border-color:var(--red);color:var(--red)}
+.mc-btn.rev{background:rgba(0,230,118,0.06);border-color:rgba(0,230,118,0.4);color:var(--green)}
 
 /* FEEDBACK */
-.feedback {
-  padding: 14px 18px;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  letter-spacing: 0.5px;
-  line-height: 1.8;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: all 0.25s ease;
-  min-height: 56px;
-}
+.fb{padding:12px 14px;border-radius:8px;font-size:0.63rem;letter-spacing:0.2px;line-height:1.9;opacity:0;transform:translateY(8px);transition:all 0.22s;min-height:48px;white-space:pre-line}
+.fb.show{opacity:1;transform:translateY(0)}
+.fb.cfb{background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);color:#4dffaa}
+.fb.wfb{background:rgba(255,68,102,0.06);border:1px solid rgba(255,68,102,0.2);color:#ff8899}
 
-.feedback.show { opacity: 1; transform: translateY(0); }
-
-.feedback.correct-fb {
-  background: rgba(0,230,118,0.07);
-  border: 1px solid rgba(0,230,118,0.25);
-  color: #4dffaa;
-}
-
-.feedback.wrong-fb {
-  background: rgba(255,23,68,0.07);
-  border: 1px solid rgba(255,23,68,0.25);
-  color: #ff6b8a;
-}
-
-/* NEXT BUTTON */
-.next-btn {
-  width: 100%;
-  padding: 14px;
-  background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--muted2);
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  display: none;
-}
-
-.next-btn.show { display: block; }
-
-.next-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: var(--gold-dim);
-}
-
-/* ── POT ODDS ─────────────────────────────────────── */
-.scenario-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.scenario-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-}
-
-.scenario-row:last-child { border-bottom: none; }
-
-.scenario-row-label {
-  font-size: 0.58rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted2);
-}
-
-.scenario-row-value {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.6rem;
-  letter-spacing: 2px;
-  color: var(--text);
-}
-
-.scenario-row-value.gold { color: var(--gold); }
-.scenario-row-value.green { color: var(--green); }
-
-.mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-.mc-btn {
-  padding: 16px;
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  background: var(--surface2);
-  color: var(--text);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.mc-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
-.mc-btn:active { transform: scale(0.97); }
-.mc-btn.selected-correct { background: rgba(0,230,118,0.12); border-color: var(--green); color: var(--green); }
-.mc-btn.selected-wrong { background: rgba(255,23,68,0.12); border-color: var(--red); color: var(--red); }
-.mc-btn.reveal-correct { background: rgba(0,230,118,0.07); border-color: rgba(0,230,118,0.5); color: var(--green); }
-
-/* ── OUTS ─────────────────────────────────────────── */
-.draw-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.draw-card-header {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.draw-card-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-  color: var(--gold);
-}
-
-.draw-card-body {
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.outs-section { display: flex; flex-direction: column; gap: 10px; }
-
-.outs-section-label {
-  font-size: 0.5rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.outs-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-}
-
-.outs-divider::before,
-.outs-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border2);
-}
-
-.outs-divider span {
-  font-size: 0.5rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.outs-cards-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.outs-card {
-  width: 62px !important;
-  height: 86px !important;
-  flex-shrink: 0;
-}
-
-.outs-card .card-rank { font-size: 1.8rem !important; }
-.outs-card .card-suit-top { font-size: 0.8rem !important; }
-.outs-card .card-suit-center { font-size: 1.3rem !important; }
-
-.draw-desc {
-  font-size: 0.7rem;
-  color: var(--muted2);
-  line-height: 1.8;
-}
-
-.draw-stats {
-  display: flex;
-  gap: 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.draw-stat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 8px;
-  border-right: 1px solid var(--border);
-  gap: 4px;
-}
-
-.draw-stat:last-child { border-right: none; }
-
-.draw-stat-label {
-  font-size: 0.5rem;
-  color: var(--muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.draw-stat-value {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.3rem;
-  color: var(--text);
-  line-height: 1;
-}
-
-.draw-stat-value.gold { color: var(--gold); }
+/* NEXT BTN */
+.nxt{width:100%;padding:14px;background:transparent;border:1px solid var(--b2);color:var(--muted2);font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:var(--radius);transition:all 0.18s;display:none}
+.nxt.show{display:block}
+.nxt:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
 
 /* ANIMATIONS */
-@keyframes flash-green {
-  0% { box-shadow: 0 0 0 0 rgba(0,230,118,0.5); }
-  100% { box-shadow: 0 0 0 24px rgba(0,230,118,0); }
-}
-@keyframes flash-red {
-  0% { box-shadow: 0 0 0 0 rgba(255,23,68,0.5); }
-  100% { box-shadow: 0 0 0 24px rgba(255,23,68,0); }
-}
-@keyframes slide-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fg{0%{box-shadow:0 0 0 0 rgba(0,230,118,0.45)}100%{box-shadow:0 0 0 20px rgba(0,230,118,0)}}
+@keyframes fr{0%{box-shadow:0 0 0 0 rgba(255,68,102,0.45)}100%{box-shadow:0 0 0 20px rgba(255,68,102,0)}}
+@keyframes si{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.flash-g{animation:fg 0.38s ease-out}.flash-r{animation:fr 0.38s ease-out}.slide-in{animation:si 0.24s ease}
 
-.flash-correct { animation: flash-green 0.45s ease-out; }
-.flash-wrong { animation: flash-red 0.45s ease-out; }
-.slide-in { animation: slide-in 0.3s ease; }
+/* MOBILE */
+@media(max-width:380px){
+  .h-title{font-size:1.3rem;letter-spacing:4px}
+  .h-suit{width:22px;height:22px;font-size:0.68rem}
+  .card.lg{width:58px;height:82px;padding:6px 7px}
+  .card.lg .cr-rank{font-size:1.6rem}
+  .btn{padding:16px 10px;font-size:1.3rem}
+  .mc-btn{padding:15px 6px;font-size:1.2rem}
+  .main{padding:14px 14px 64px}
+}
 </style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
 <header>
-  <div class="header-bg"></div>
-  <div class="header-suits">
-    <span>♠</span><span>♥</span><span>♦</span><span>♣</span>
-  </div>
-  <div class="header-top">
-    <div class="header-logo">
-      <h1>POKER</h1>
-      <div class="header-sub">Training Suite · v1.0</div>
+  <div class="h-inner">
+    <div class="h-left">
+      <div class="h-pip">&#9824;</div>
+      <div>
+        <div class="h-title">POKER TRAINER</div>
+        
+      </div>
     </div>
-    
+    <div class="h-right">
+      <div class="h-suit">&#9824;</div>
+      <div class="h-suit r">&#9829;</div>
+      <div class="h-suit r">&#9830;</div>
+      <div class="h-suit">&#9827;</div>
+    </div>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('preflop')">
-      <span class="tab-icon">♠</span> Preflop
-    </button>
-    <button class="tab" onclick="switchTab('potodds')">
-      <span class="tab-icon">$</span> Pot Odds
-    </button>
-    <button class="tab" onclick="switchTab('outs')">
-      <span class="tab-icon">◈</span> Outs
-    </button>
+    <button class="tab active" onclick="switchTab('pf')"><span class="ti">&#9824;</span>Preflop</button>
+    <button class="tab" onclick="switchTab('po')"><span class="ti">$</span>Pot Odds</button>
+    <button class="tab" onclick="switchTab('ot')"><span class="ti">&#9670;</span>Outs</button>
+    <button class="tab" onclick="switchTab('dc')"><span class="ti">&#9889;</span>Decision</button>
   </div>
 </header>
 
-<!-- ── SCORE BAR ── -->
-<div class="score-bar">
-  <div class="score-item">
-    <div class="score-label">Correct</div>
-    <div class="score-value correct" id="scoreCorrect">0</div>
-  </div>
-  <div class="score-item">
-    <div class="score-label">Wrong</div>
-    <div class="score-value wrong" id="scoreWrong">0</div>
-  </div>
-  <div class="score-item">
-    <div class="score-label">Acc</div>
-    <div class="score-value pct" id="scorePct">—</div>
-  </div>
-  <div class="progress-wrap">
-    <div class="progress-label">Accuracy</div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-  </div>
+<div class="sbar">
+  <div class="si"><div class="sl">Correct</div><div class="sv c" id="sC">0</div></div>
+  <div class="si"><div class="sl">Wrong</div><div class="sv w" id="sW">0</div></div>
+  <div class="si"><div class="sl">Acc</div><div class="sv p" id="sP">&mdash;</div></div>
+  <div class="pw"><div class="pl">Accuracy</div><div class="pt"><div class="pf" id="pFill"></div></div></div>
 </div>
 
-<!-- ── MAIN ── -->
 <div class="main">
 
-  <!-- PREFLOP TAB -->
-  <div class="tab-content active" id="tab-preflop">
-    <div class="section-label">Filter positions</div>
-    <div class="chip-row" id="posFilter"></div>
-
-    <div class="position-tag">
-      <span>Position</span>
-      <span class="pos-value" id="posLabel">BTN</span>
-    </div>
-
-    <div class="hand-display">
-      <div class="card black-card" id="card1">
-        <div class="card-rank" id="card1rank">A</div>
-        <div class="card-suit-top" id="card1suit">♠</div>
-        <div class="card-suit-center" id="card1suitbg">♠</div>
-      </div>
-      <div class="card red-card" id="card2">
-        <div class="card-rank" id="card2rank">K</div>
-        <div class="card-suit-top" id="card2suit">♥</div>
-        <div class="card-suit-center" id="card2suitbg">♥</div>
-      </div>
-      <div class="hand-info">
-        <div class="hand-combo" id="handCombo">AKs</div>
-        <div class="hand-type" id="handType">Suited</div>
-      </div>
-    </div>
-
-    <div class="question">Should you open raise or fold from this position?</div>
-
-    <div class="buttons">
-      <button class="btn btn-raise" id="btnRaise" onclick="pfAnswer('r')">Raise</button>
-      <button class="btn btn-fold" id="btnFold" onclick="pfAnswer('f')">Fold</button>
-    </div>
-
-    <div class="feedback" id="pfFeedback"></div>
-    <button class="next-btn" id="pfNextBtn" onclick="nextHand()">Next hand →</button>
+<!-- PREFLOP -->
+<div class="tc active" id="tab-pf">
+  <div class="sec-lbl">Filter positions</div>
+  <div class="cr" id="posFilter"></div>
+  <div class="pos-tag"><span>Position</span><span class="pos-val" id="posLbl">BTN</span></div>
+  <div class="hdisp">
+    <div class="card lg blk" id="c1"><div class="cr-rank" id="c1r">A</div><div class="cs-top" id="c1s">&#9824;</div><div class="cs-ctr" id="c1b">&#9824;</div></div>
+    <div class="card lg red" id="c2"><div class="cr-rank" id="c2r">K</div><div class="cs-top" id="c2s">&#9829;</div><div class="cs-ctr" id="c2b">&#9829;</div></div>
+    <div class="hinfo"><div class="hcombo" id="hCombo">AKs</div><div class="htype" id="hType">Suited</div></div>
   </div>
-
-  <!-- POT ODDS TAB -->
-  <div class="tab-content" id="tab-potodds">
-    <div class="section-label">Mode</div>
-    <div class="chip-row">
-      <button class="chip active" id="modeEquity" onclick="setMode('equity')">Equity needed</button>
-      <button class="chip" id="modeCall" onclick="setMode('call')">Should I call?</button>
-    </div>
-
-    <div class="scenario-card">
-      <div class="scenario-row">
-        <div class="scenario-row-label">Pot size</div>
-        <div class="scenario-row-value gold" id="potSize">$80</div>
-      </div>
-      <div class="scenario-row">
-        <div class="scenario-row-label">Bet to call</div>
-        <div class="scenario-row-value gold" id="betSize">$40</div>
-      </div>
-      <div class="scenario-row">
-        <div class="scenario-row-label">Total pot if you call</div>
-        <div class="scenario-row-value" id="totalPot">$160</div>
-      </div>
-      <div class="scenario-row" id="equityGivenRow" style="display:none">
-        <div class="scenario-row-label">Your equity</div>
-        <div class="scenario-row-value green" id="equityGiven">35%</div>
-      </div>
-    </div>
-
-    <div class="question" id="poQuestion">What % equity do you need to breakeven on a call?</div>
-    <div class="mc-grid" id="equityOptions"></div>
-
-    <div class="buttons" id="callButtons" style="display:none">
-      <button class="btn btn-call" id="btnCall" onclick="poAnswer('call')">Call</button>
-      <button class="btn btn-nocall" id="btnNocall" onclick="poAnswer('fold')">Fold</button>
-    </div>
-
-    <div class="feedback" id="poFeedback"></div>
-    <button class="next-btn" id="poNextBtn" onclick="nextPotOdds()">Next hand →</button>
+  <div class="question">Should you open raise or fold from this position?</div>
+  <div class="btns">
+    <button class="btn btn-y" id="bRaise" onclick="pfAns('r')">Raise</button>
+    <button class="btn btn-n" id="bFold" onclick="pfAns('f')">Fold</button>
   </div>
+  <div class="fb" id="pfFb"></div>
+  <button class="nxt" id="pfNxt" onclick="nextHand()">Next hand &rarr;</button>
+</div>
 
-  <!-- OUTS TAB -->
-  <div class="tab-content" id="tab-outs">
-    <div class="section-label">Street</div>
-    <div class="chip-row">
-      <button class="chip active" id="streetFlop" onclick="setStreet('flop')">Flop</button>
-      <button class="chip" id="streetTurn" onclick="setStreet('turn')">Turn</button>
-      <button class="chip" id="streetBoth" onclick="setStreet('both')">Mixed</button>
-    </div>
-
-    <div class="draw-card">
-      <div class="draw-card-header">
-        <div class="draw-card-title" id="drawStreetLabel">Flop</div>
-      </div>
-      <div class="draw-card-body">
-        <div class="outs-section">
-          <div class="outs-section-label">Your Hand</div>
-          <div class="outs-cards-row" id="holeCards"></div>
-        </div>
-        <div class="outs-divider"><span>Board</span></div>
-        <div class="outs-section">
-          <div class="outs-cards-row" id="boardCards"></div>
-        </div>
-        <div class="draw-desc" id="drawSituation"></div>
-      </div>
-    </div>
-
-    <div class="question">Count your outs then apply rule of 2 & 4. What is your approximate equity?</div>
-    <div class="mc-grid" id="outsOptions"></div>
-
-    <div class="feedback" id="outsFeedback"></div>
-    <button class="next-btn" id="outsNextBtn" onclick="nextOuts()">Next hand →</button>
+<!-- POT ODDS -->
+<div class="tc" id="tab-po">
+  <div class="sec-lbl">Mode</div>
+  <div class="cr">
+    <button class="chip active" id="mEq" onclick="setPoMode('eq')">Equity needed</button>
+    <button class="chip" id="mCall" onclick="setPoMode('call')">Should I call?</button>
   </div>
+  <div class="pobox">
+    <div class="por"><div class="por-lbl">Pot size</div><div class="por-val gld" id="poPot">$80</div></div>
+    <div class="por"><div class="por-lbl">Bet to call</div><div class="por-val gld" id="poBet">$40</div></div>
+    <div class="por"><div class="por-lbl">Total pot if you call</div><div class="por-val wht" id="poTot">$160</div></div>
+    <div class="por" id="poGivRow" style="display:none"><div class="por-lbl">Your equity</div><div class="por-val grn" id="poGiv">35%</div></div>
+  </div>
+  <div class="question" id="poQ">What % equity do you need to break even on a call?</div>
+  <div class="mc-grid" id="poOpts"></div>
+  <div class="btns" id="poCallBtns" style="display:none">
+    <button class="btn btn-y" id="bCall" onclick="poAns('call')">Call</button>
+    <button class="btn btn-n" id="bFld" onclick="poAns('fold')">Fold</button>
+  </div>
+  <div class="fb" id="poFb"></div>
+  <button class="nxt" id="poNxt" onclick="nextPo()">Next hand &rarr;</button>
+</div>
+
+<!-- OUTS -->
+<div class="tc" id="tab-ot">
+  <div class="sec-lbl">Street</div>
+  <div class="cr">
+    <button class="chip active" id="stFlop" onclick="setStreet('flop')">Flop</button>
+    <button class="chip" id="stTurn" onclick="setStreet('turn')">Turn</button>
+    <button class="chip" id="stBoth" onclick="setStreet('both')">Mixed</button>
+  </div>
+  <div class="sbox">
+    <div class="sbox-hdr">
+      <div class="sbox-ttl" id="otSt">Flop</div>
+      <div class="sbox-tag">Count your outs</div>
+    </div>
+    <div class="sbox-body">
+      <div><div class="rlbl">Your Hand</div><div class="cards-row" id="otHole"></div></div>
+      <div class="cdiv"><span>Board</span></div>
+      <div class="cards-row" id="otBoard"></div>
+      <div class="sit-txt" id="otSit"></div>
+    </div>
+  </div>
+  <div class="question">Count your outs, then apply the rule of 2 &amp; 4. What is your approximate equity?</div>
+  <div class="mc-grid" id="otOpts"></div>
+  <div class="fb" id="otFb"></div>
+  <button class="nxt" id="otNxt" onclick="nextOuts()">Next hand &rarr;</button>
+</div>
+
+<!-- DECISION -->
+<div class="tc" id="tab-dc">
+  <div class="sbox">
+    <div class="sbox-hdr">
+      <div class="sbox-ttl" id="dcSt">Flop</div>
+      <div class="sbox-tag">Full decision</div>
+    </div>
+    <div class="sbox-body">
+      <div><div class="rlbl">Your Hand</div><div class="cards-row" id="dcHole"></div></div>
+      <div class="cdiv"><span>Board</span></div>
+      <div class="cards-row" id="dcBoard"></div>
+    </div>
+  </div>
+  <div class="pobox">
+    <div class="por"><div class="por-lbl">Pot size</div><div class="por-val gld" id="dcPot">$80</div></div>
+    <div class="por"><div class="por-lbl">Villain bets</div><div class="por-val gld" id="dcBet">$40</div></div>
+    <div class="por"><div class="por-lbl">Total pot if you call</div><div class="por-val wht" id="dcTot">$160</div></div>
+  </div>
+  <div class="question">Count your outs, calculate your equity, compare to pot odds. Call or fold?</div>
+  <div class="btns">
+    <button class="btn btn-y" id="dcBCall" onclick="dcAns('call')">Call</button>
+    <button class="btn btn-n" id="dcBFold" onclick="dcAns('fold')">Fold</button>
+  </div>
+  <div class="fb" id="dcFb"></div>
+  <button class="nxt" id="dcNxt" onclick="nextDc()">Next hand &rarr;</button>
+</div>
 
 </div>
 
 <script>
-// ── TAB SWITCHING ──────────────────────────────────
-let currentTab = 'preflop';
-const scores = { preflop:[0,0], potodds:[0,0], outs:[0,0] };
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) =>
-    t.classList.toggle('active', ['preflop','potodds','outs'][i]===tab));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  const el = document.getElementById('tab-'+tab);
-  el.classList.add('active');
-  el.classList.add('slide-in');
-  setTimeout(()=>el.classList.remove('slide-in'), 300);
-  updateScoreBar();
+const $=id=>document.getElementById(id);
+let curTab='pf';
+const scores={pf:[0,0],po:[0,0],ot:[0,0],dc:[0,0]};
+function switchTab(t){
+  curTab=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['pf','po','ot','dc'][i]===t));
+  document.querySelectorAll('.tc').forEach(el=>el.classList.remove('active'));
+  const el=$('tab-'+t);el.classList.add('active');el.classList.add('slide-in');
+  setTimeout(()=>el.classList.remove('slide-in'),280);updateBar();
+}
+function updateBar(){
+  const s=scores[curTab],tot=s[0]+s[1],pct=tot?Math.round(s[0]/tot*100):null;
+  $('sC').textContent=s[0];$('sW').textContent=s[1];
+  $('sP').textContent=pct!=null?pct+'%':'—';$('pFill').style.width=(pct||0)+'%';
+}
+function rec(tab,ok){if(ok)scores[tab][0]++;else scores[tab][1]++;if(curTab===tab)updateBar();}
+function renderC(id,cards){
+  $(id).innerHTML=cards.map(([r,s])=>{
+    const isRed=s==='♥'||s==='♦';
+    return `<div class="card sm ${isRed?'red':'blk'}"><div class="cr-rank">${r}</div><div class="cs-top">${s}</div><div class="cs-ctr">${s}</div></div>`;
+  }).join('');
+}
+function buildMC(id,correct,cb){
+  const offs=[-12,-8,-6,-4,4,6,8,12,-16,16,-10,10].sort(()=>Math.random()-0.5);
+  const opts=new Set([correct]);
+  for(const o of offs){if(opts.size>=4)break;const v=Math.max(2,Math.min(70,correct+o));if(Math.abs(v-correct)>=3)opts.add(v);}
+  const arr=[...opts].sort((a,b)=>a-b);
+  $(id).innerHTML='';
+  arr.forEach(val=>{
+    const btn=document.createElement('button');
+    btn.className='mc-btn';btn.textContent='~'+val+'%';btn.dataset.val=val;
+    btn.onclick=()=>cb(val,correct,btn);$(id).appendChild(btn);
+  });
 }
 
-function updateScoreBar() {
-  const s = scores[currentTab];
-  const total = s[0]+s[1];
-  const pct = total ? Math.round(s[0]/total*100) : null;
-  document.getElementById('scoreCorrect').textContent = s[0];
-  document.getElementById('scoreWrong').textContent = s[1];
-  document.getElementById('scorePct').textContent = pct!==null ? pct+'%' : '—';
-  document.getElementById('progressFill').style.width = (pct||0)+'%';
-}
-
-function recordScore(tab, correct) {
-  if (correct) scores[tab][0]++; else scores[tab][1]++;
-  if (currentTab===tab) updateScoreBar();
-}
-
-// ── PREFLOP TRAINER ────────────────────────────────
-const charts = {
-  "UTG": new Set(["AA","KK","QQ","JJ","TT","99","88","77","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","QJs","QTs","Q9s","Q8s","QJo","JTs","J9s","T9s","T8s","98s","87s","76s","65s","54s"]),
-  "MP":  new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","KTo","QJs","QTs","Q9s","Q8s","Q7s","QJo","QTo","JTs","J9s","J8s","JTo","T9s","T8s","98s","87s","76s","65s","54s"]),
-  "CO":  new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","KQo","KJo","KTo","K9o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","QJo","QTo","Q9o","JTs","J9s","J8s","J7s","JTo","J9o","T9s","T8s","T7s","T9o","98s","97s","87s","86s","76s","75s","65s","64s","54s","53s"]),
-  "BTN": new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"]),
-  "SB":  new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"]),
+// ── PREFLOP ──────────────────────────────────────
+const CHARTS={
+  UTG:new Set(["AA","KK","QQ","JJ","TT","99","88","77","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","QJs","QTs","Q9s","Q8s","QJo","JTs","J9s","T9s","T8s","98s","87s","76s","65s","54s"]),
+  MP: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","KTo","QJs","QTs","Q9s","Q8s","Q7s","QJo","QTo","JTs","J9s","J8s","JTo","T9s","T8s","98s","87s","76s","65s","54s"]),
+  CO: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","KQo","KJo","KTo","K9o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","QJo","QTo","Q9o","JTs","J9s","J8s","J7s","JTo","J9o","T9s","T8s","T7s","T9o","98s","97s","87s","86s","76s","75s","65s","64s","54s","53s"]),
+  BTN:new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"]),
+  SB: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"])
 };
-
-const allHands = [];
-const ranks = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"];
-for (let i=0;i<13;i++) {
-  allHands.push(ranks[i]+ranks[i]);
-  for (let j=i+1;j<13;j++) {
-    allHands.push(ranks[i]+ranks[j]+"o");
-    allHands.push(ranks[i]+ranks[j]+"s");
-  }
-}
-
-const suitSymbols = {s:"♠",h:"♥",d:"♦",c:"♣"};
-const redSuits = ["h","d"];
-let activePosFilter = new Set(["UTG","MP","CO","BTN","SB"]);
-let currentHand="", currentPos="", pfAnswered=false;
-
-// Build position chips
-const posFilter = document.getElementById("posFilter");
-["UTG","MP","CO","BTN","SB"].forEach(pos => {
-  const chip = document.createElement("button");
-  chip.className = "chip active";
-  chip.textContent = pos;
-  chip.onclick = () => {
-    if (activePosFilter.has(pos) && activePosFilter.size===1) return;
-    if (activePosFilter.has(pos)) { activePosFilter.delete(pos); chip.classList.remove("active"); }
-    else { activePosFilter.add(pos); chip.classList.add("active"); }
-  };
-  posFilter.appendChild(chip);
+const RANKS=["A","K","Q","J","T","9","8","7","6","5","4","3","2"];
+const ALL_HANDS=[];
+for(let i=0;i<13;i++){ALL_HANDS.push(RANKS[i]+RANKS[i]);for(let j=i+1;j<13;j++){ALL_HANDS.push(RANKS[i]+RANKS[j]+'o');ALL_HANDS.push(RANKS[i]+RANKS[j]+'s');}}
+const SYM={s:'♠',h:'♥',d:'♦',c:'♣'};
+const RED=['h','d'];
+let activePF=new Set(['UTG','MP','CO','BTN','SB']),curHand='',curPos='',pfDone=false;
+['UTG','MP','CO','BTN','SB'].forEach(pos=>{
+  const c=document.createElement('button');c.className='chip active';c.textContent=pos;
+  c.onclick=()=>{if(activePF.has(pos)&&activePF.size===1)return;if(activePF.has(pos)){activePF.delete(pos);c.classList.remove('active');}else{activePF.add(pos);c.classList.add('active');}};
+  $('posFilter').appendChild(c);
 });
-
-function getHandType(hand) {
-  if (hand.length===2) return "Pair";
-  return hand.endsWith("s") ? "Suited" : "Offsuit";
-}
-
-function renderHand(hand) {
-  const type = getHandType(hand);
-  const r1=hand[0], r2=hand[1]||hand[0];
+function nextHand(){
+  pfDone=false;
+  const pos=[...activePF];curPos=pos[Math.floor(Math.random()*pos.length)];
+  curHand=ALL_HANDS[Math.floor(Math.random()*ALL_HANDS.length)];
+  $('posLbl').textContent=curPos;
+  const type=curHand.length===2?'Pair':curHand.endsWith('s')?'Suited':'Offsuit';
+  const r1=curHand[0],r2=curHand[1]||curHand[0];
   let s1,s2;
-  if (type==="Suited") { const suits=["s","h","d","c"]; s1=s2=suits[Math.floor(Math.random()*4)]; }
-  else { s1=Math.random()>0.5?"s":"c"; s2=Math.random()>0.5?"h":"d"; }
-  const isRed1 = redSuits.includes(s1), isRed2 = redSuits.includes(s2);
-  document.getElementById("card1rank").textContent = r1;
-  document.getElementById("card1suit").textContent = suitSymbols[s1];
-  document.getElementById("card1suitbg").textContent = suitSymbols[s1];
-  document.getElementById("card1").className = "card "+(isRed1?"red-card":"black-card");
-  document.getElementById("card2rank").textContent = r2;
-  document.getElementById("card2suit").textContent = suitSymbols[s2];
-  document.getElementById("card2suitbg").textContent = suitSymbols[s2];
-  document.getElementById("card2").className = "card "+(isRed2?"red-card":"black-card");
-  document.getElementById("handCombo").textContent = hand;
-  document.getElementById("handType").textContent = type;
+  if(type==='Suited'){const ss=['s','h','d','c'];s1=s2=ss[Math.floor(Math.random()*4)];}
+  else{s1=Math.random()>0.5?'s':'c';s2=Math.random()>0.5?'h':'d';}
+  $('c1r').textContent=r1;$('c1s').textContent=SYM[s1];$('c1b').textContent=SYM[s1];$('c1').className='card lg '+(RED.includes(s1)?'red':'blk');
+  $('c2r').textContent=r2;$('c2s').textContent=SYM[s2];$('c2b').textContent=SYM[s2];$('c2').className='card lg '+(RED.includes(s2)?'red':'blk');
+  $('hCombo').textContent=curHand;$('hType').textContent=type;
+  $('pfFb').className='fb';$('pfFb').textContent='';$('pfNxt').className='nxt';
+  $('bRaise').disabled=false;$('bFold').disabled=false;
+}
+function pfAns(ch){
+  if(pfDone)return;pfDone=true;
+  const should=CHARTS[curPos].has(curHand);const ok=(ch==='r'&&should)||(ch==='f'&&!should);rec('pf',ok);
+  $('pfFb').className='fb '+(ok?'cfb':'wfb')+' show';
+  $('pfFb').textContent=ok?`✓ Correct. ${curHand} is ${should?'an open raise':'a fold'} from ${curPos}.`:`✗ Wrong. ${curHand} is ${should?'an open raise':'a fold'} from ${curPos}.`;
+  ['c1','c2'].forEach(id=>{$(id).classList.add(ok?'flash-g':'flash-r');setTimeout(()=>$(id).classList.remove('flash-g','flash-r'),400);});
+  $('bRaise').disabled=true;$('bFold').disabled=true;$('pfNxt').className='nxt show';
 }
 
-function nextHand() {
-  pfAnswered = false;
-  const positions = [...activePosFilter];
-  currentPos = positions[Math.floor(Math.random()*positions.length)];
-  currentHand = allHands[Math.floor(Math.random()*allHands.length)];
-  document.getElementById("posLabel").textContent = currentPos;
-  renderHand(currentHand);
-  document.getElementById("pfFeedback").className = "feedback";
-  document.getElementById("pfFeedback").textContent = "";
-  document.getElementById("pfNextBtn").className = "next-btn";
-  document.getElementById("btnRaise").disabled = false;
-  document.getElementById("btnFold").disabled = false;
-}
-
-function pfAnswer(choice) {
-  if (pfAnswered) return;
-  pfAnswered = true;
-  const shouldRaise = charts[currentPos].has(currentHand);
-  const correct = (choice==="r"&&shouldRaise)||(choice==="f"&&!shouldRaise);
-  recordScore('preflop', correct);
-  const fb = document.getElementById("pfFeedback");
-  fb.className = "feedback "+(correct?"correct-fb":"wrong-fb")+" show";
-  fb.textContent = correct
-    ? `✓ Correct. ${currentHand} is ${shouldRaise?"an open raise":"a fold"} from ${currentPos}.`
-    : `✗ Wrong. ${currentHand} is ${shouldRaise?"an open raise":"a fold"} from ${currentPos}.`;
-  ["card1","card2"].forEach(id => {
-    document.getElementById(id).classList.add(correct?"flash-correct":"flash-wrong");
-    setTimeout(()=>document.getElementById(id).classList.remove("flash-correct","flash-wrong"),450);
-  });
-  document.getElementById("btnRaise").disabled = true;
-  document.getElementById("btnFold").disabled = true;
-  document.getElementById("pfNextBtn").className = "next-btn show";
-}
-
-// ── POT ODDS TRAINER ──────────────────────────────
-let poMode='equity', currentPot, currentBet, currentEquityNeeded, currentEquityGiven, poAnswered;
-
-function setMode(mode) {
-  poMode = mode;
-  document.getElementById('modeEquity').classList.toggle('active', mode==='equity');
-  document.getElementById('modeCall').classList.toggle('active', mode==='call');
-  nextPotOdds();
-}
-
-function nextPotOdds() {
-  poAnswered = false;
-  document.getElementById("poFeedback").className = "feedback";
-  document.getElementById("poFeedback").textContent = "";
-  document.getElementById("poNextBtn").className = "next-btn";
-  const potSizes = [20,30,40,50,60,80,100,120,150,200];
-  const betFracs = [0.25,0.33,0.5,0.67,0.75,1.0,1.5];
-  currentPot = potSizes[Math.floor(Math.random()*potSizes.length)];
-  const frac = betFracs[Math.floor(Math.random()*betFracs.length)];
-  currentBet = Math.round(currentPot*frac/5)*5||5;
-  currentEquityNeeded = currentBet/(currentPot+currentBet)*100;
-  document.getElementById("potSize").textContent = "$"+currentPot;
-  document.getElementById("betSize").textContent = "$"+currentBet;
-  document.getElementById("totalPot").textContent = "$"+(currentPot+currentBet*2);
-  if (poMode==='equity') {
-    document.getElementById("equityGivenRow").style.display = "none";
-    document.getElementById("equityOptions").style.display = "grid";
-    document.getElementById("callButtons").style.display = "none";
-    document.getElementById("poQuestion").textContent = "What % equity do you need to breakeven on a call?";
-    buildMCOptions("equityOptions", Math.round(currentEquityNeeded), v => {
-      poAnswered = true;
-      const correct = Math.round(currentEquityNeeded);
-      const isCorrect = Math.abs(v-correct)<=2;
-      recordScore('potodds', isCorrect);
-      document.querySelectorAll('#equityOptions .mc-btn').forEach(b => {
-        if (Math.abs(parseInt(b.dataset.val)-correct)<=2) b.classList.add('reveal-correct');
-      });
-      event.target.classList.add(isCorrect?'selected-correct':'selected-wrong');
-      const fb = document.getElementById("poFeedback");
-      fb.className = "feedback "+(isCorrect?"correct-fb":"wrong-fb")+" show";
-      fb.textContent = isCorrect
-        ? `✓ Correct! ${correct}% needed.\n$${currentBet} / $${currentPot+currentBet} = ${correct}%`
-        : `✗ Wrong. You need ${correct}%.\n$${currentBet} / $${currentPot+currentBet} = ${correct}%`;
-      document.getElementById("poNextBtn").className = "next-btn show";
+// ── POT ODDS ─────────────────────────────────────
+const PO_SPOTS=[
+  {pot:10,bet:3},{pot:10,bet:5},{pot:15,bet:5},{pot:20,bet:5},{pot:20,bet:7},{pot:20,bet:10},
+  {pot:25,bet:8},{pot:30,bet:8},{pot:30,bet:10},{pot:30,bet:15},{pot:40,bet:10},{pot:40,bet:15},
+  {pot:40,bet:20},{pot:40,bet:30},{pot:50,bet:12},{pot:50,bet:15},{pot:50,bet:20},{pot:50,bet:25},
+  {pot:50,bet:35},{pot:60,bet:15},{pot:60,bet:20},{pot:60,bet:25},{pot:60,bet:30},{pot:60,bet:40},
+  {pot:60,bet:45},{pot:60,bet:60},{pot:70,bet:20},{pot:70,bet:30},{pot:70,bet:35},{pot:70,bet:50},
+  {pot:80,bet:20},{pot:80,bet:25},{pot:80,bet:30},{pot:80,bet:40},{pot:80,bet:50},{pot:80,bet:60},
+  {pot:80,bet:80},{pot:90,bet:30},{pot:90,bet:45},{pot:100,bet:20},{pot:100,bet:25},{pot:100,bet:33},
+  {pot:100,bet:40},{pot:100,bet:50},{pot:100,bet:60},{pot:100,bet:75},{pot:100,bet:100},
+  {pot:120,bet:30},{pot:120,bet:40},{pot:120,bet:60},{pot:120,bet:80},{pot:120,bet:90},
+  {pot:150,bet:40},{pot:150,bet:50},{pot:150,bet:75},{pot:150,bet:100},{pot:150,bet:125},
+  {pot:200,bet:50},{pot:200,bet:75},{pot:200,bet:100},{pot:200,bet:133},{pot:200,bet:150},
+  {pot:250,bet:75},{pot:250,bet:100},{pot:250,bet:125},{pot:250,bet:200},
+  {pot:300,bet:100},{pot:300,bet:150},{pot:300,bet:200},{pot:300,bet:250},
+];
+let poCur={},poDone=false,poMode='eq',poUsed=new Set();
+function setPoMode(m){poMode=m;$('mEq').classList.toggle('active',m==='eq');$('mCall').classList.toggle('active',m==='call');nextPo();}
+function nextPo(){
+  poDone=false;$('poFb').className='fb';$('poFb').textContent='';$('poNxt').className='nxt';
+  if(poUsed.size>=PO_SPOTS.length)poUsed.clear();
+  let idx;do{idx=Math.floor(Math.random()*PO_SPOTS.length);}while(poUsed.has(idx));poUsed.add(idx);
+  const spot=PO_SPOTS[idx];poCur={pot:spot.pot,bet:spot.bet,needed:spot.bet/(spot.pot+spot.bet)*100};
+  $('poPot').textContent='$'+poCur.pot;$('poBet').textContent='$'+poCur.bet;$('poTot').textContent='$'+(poCur.pot+poCur.bet*2);
+  const c=Math.round(poCur.needed);
+  if(poMode==='eq'){
+    $('poGivRow').style.display='none';$('poOpts').style.display='grid';$('poCallBtns').style.display='none';
+    $('poQ').textContent='What % equity do you need to break even on a call?';
+    buildMC('poOpts',c,(val,cor,btn)=>{
+      if(poDone)return;poDone=true;const ok=Math.abs(val-cor)<=2;rec('po',ok);
+      document.querySelectorAll('#poOpts .mc-btn').forEach(b=>{if(Math.abs(parseInt(b.dataset.val)-cor)<=2)b.classList.add('rev');});
+      btn.classList.add(ok?'ok':'bad');$('poFb').className='fb '+(ok?'cfb':'wfb')+' show';
+      $('poFb').textContent=ok?`✓ Correct! $${poCur.bet} / $${poCur.pot+poCur.bet} = ${cor}% equity needed.`:`✗ Wrong. $${poCur.bet} / $${poCur.pot+poCur.bet} = ${cor}% equity needed.`;
+      $('poNxt').className='nxt show';
     });
-  } else {
-    const variance = [-15,-10,-7,-5,5,7,10,15];
-    const offset = variance[Math.floor(Math.random()*variance.length)];
-    currentEquityGiven = Math.max(5,Math.min(95,Math.round(currentEquityNeeded+offset)));
-    document.getElementById("equityGivenRow").style.display = "flex";
-    document.getElementById("equityGiven").textContent = currentEquityGiven+"%";
-    document.getElementById("equityOptions").style.display = "none";
-    document.getElementById("callButtons").style.display = "grid";
-    document.getElementById("poQuestion").textContent = "You have "+currentEquityGiven+"% equity. Should you call?";
-    document.getElementById("btnCall").disabled = false;
-    document.getElementById("btnNocall").disabled = false;
+  }else{
+    const offs=[-22,-18,-14,-10,-8,8,10,14,18,22,-26,26];const off=offs[Math.floor(Math.random()*offs.length)];
+    poCur.given=Math.max(5,Math.min(90,Math.round(poCur.needed+off)));
+    $('poGivRow').style.display='flex';$('poGiv').textContent=poCur.given+'%';
+    $('poOpts').style.display='none';$('poCallBtns').style.display='grid';
+    $('poQ').textContent='You have '+poCur.given+'% equity. Call or fold?';
+    $('bCall').disabled=false;$('bFld').disabled=false;
   }
 }
-
-function buildMCOptions(containerId, correct, onAnswer) {
-  const offsets = [-10,-5,5,10,-15,15,-8,8].sort(()=>Math.random()-0.5);
-  const options = new Set([correct]);
-  for (const o of offsets) {
-    if (options.size>=4) break;
-    const v = Math.max(5,Math.min(60,correct+o));
-    if (Math.abs(v-correct)>=3) options.add(v);
-  }
-  const arr = [...options].sort((a,b)=>a-b);
-  const container = document.getElementById(containerId);
-  container.innerHTML = "";
-  arr.forEach(val => {
-    const btn = document.createElement("button");
-    btn.className = "mc-btn";
-    btn.textContent = val+"%";
-    btn.dataset.val = val;
-    btn.onclick = (e) => { if (!poAnswered) onAnswer(val); };
-    container.appendChild(btn);
-  });
+function poAns(ch){
+  if(poDone)return;poDone=true;const sc=poCur.given>poCur.needed,ok=(ch==='call'&&sc)||(ch==='fold'&&!sc);rec('po',ok);
+  $('bCall').disabled=true;$('bFld').disabled=true;const need=Math.round(poCur.needed);
+  $('poFb').className='fb '+(ok?'cfb':'wfb')+' show';
+  $('poFb').textContent=ok?(sc?`✓ Call. ${poCur.given}% equity vs ${need}% needed. +${poCur.given-need}% edge.`:`✓ Fold. Only ${poCur.given}% equity, need ${need}%.`):(sc?`✗ Should call. ${poCur.given}% equity vs ${need}% needed.`:`✗ Should fold. Only ${poCur.given}% equity but need ${need}%.`);
+  $('poNxt').className='nxt show';
 }
 
-function poAnswer(choice) {
-  if (poAnswered) return;
-  poAnswered = true;
-  const shouldCall = currentEquityGiven>currentEquityNeeded;
-  const correct = (choice==="call"&&shouldCall)||(choice==="fold"&&!shouldCall);
-  recordScore('potodds', correct);
-  document.getElementById("btnCall").disabled = true;
-  document.getElementById("btnNocall").disabled = true;
-  const fb = document.getElementById("poFeedback");
-  fb.className = "feedback "+(correct?"correct-fb":"wrong-fb")+" show";
-  const needed = Math.round(currentEquityNeeded);
-  fb.textContent = correct
-    ? (shouldCall
-        ? `✓ Correct! Call — ${currentEquityGiven}% equity vs ${needed}% needed. +${currentEquityGiven-needed}% edge.`
-        : `✓ Correct! Fold — only ${currentEquityGiven}% equity, need ${needed}%.`)
-    : (shouldCall
-        ? `✗ Wrong. Should call — ${currentEquityGiven}% equity vs ${needed}% needed.`
-        : `✗ Wrong. Should fold — ${currentEquityGiven}% equity but need ${needed}%.`);
-  document.getElementById("poNextBtn").className = "next-btn show";
-}
-
-// ── OUTS TRAINER ──────────────────────────────────
-// Each scenario: hole cards, board, outs count, explanation
-const S = ['♠','♥','♦','♣'];
-const R = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
-
-function mkCard(rank, suit) {
-  const isRed = suit==='♥'||suit==='♦';
-  return `<div class="card ${isRed?'red-card':'black-card'} outs-card">
-    <div class="card-rank">${rank}</div>
-    <div class="card-suit-top">${suit}</div>
-    <div class="card-suit-center">${suit}</div>
-  </div>`;
-}
-
-const scenarios = [
-  // Flush draws
-  {
-    hole: [['J','♥'],['T','♥']], board: [['A','♥'],['8','♥'],['3','♦']], street:'flop',
-    outs: 9, explanation: 'Flush draw (9 outs) — 9 hearts remain in the deck.'
-  },
-  {
-    hole: [['K','♠'],['Q','♠']], board: [['J','♠'],['5','♠'],['2','♥']], street:'flop',
-    outs: 9, explanation: 'Flush draw (9 outs) — 9 spades remain.'
-  },
-  // OESD
-  {
-    hole: [['9','♥'],['8','♦']], board: [['7','♠'],['6','♣'],['A','♥']], street:'flop',
-    outs: 8, explanation: 'Open-ended straight draw (8 outs) — any 5 or any T completes it.'
-  },
-  {
-    hole: [['T','♣'],['J','♥']], board: [['9','♦'],['8','♠'],['2','♥']], street:'flop',
-    outs: 8, explanation: 'Open-ended straight draw (8 outs) — any 7 or any Q completes it.'
-  },
-  // Gutshot
-  {
-    hole: [['J','♦'],['T','♣']], board: [['8','♥'],['7','♠'],['2','♦']], street:'flop',
-    outs: 4, explanation: 'Gutshot straight draw (4 outs) — only a 9 completes it.'
-  },
-  {
-    hole: [['A','♣'],['Q','♥']], board: [['K','♦'],['J','♠'],['5','♣']], street:'flop',
-    outs: 4, explanation: 'Gutshot straight draw (4 outs) — only a T completes it.'
-  },
-  // Flush + gutshot
-  {
-    hole: [['J','♥'],['9','♥']], board: [['Q','♥'],['8','♥'],['2','♣']], street:'flop',
-    outs: 12, explanation: 'Flush draw (9 outs) + gutshot (4 outs) — minus 1 overlap = 12 outs.'
-  },
-  // Flush + OESD
-  {
-    hole: [['9','♦'],['8','♦']], board: [['7','♦'],['6','♣'],['A','♦']], street:'flop',
-    outs: 15, explanation: 'Flush draw (9 outs) + OESD (8 outs) — minus 2 overlap cards = 15 outs.'
-  },
-  // Two overcards
-  {
-    hole: [['A','♣'],['K','♥']], board: [['Q','♦'],['7','♠'],['3','♣']], street:'flop',
-    outs: 6, explanation: 'Two overcards (6 outs) — 3 aces + 3 kings give you top pair.'
-  },
-  // Turn scenarios
-  {
-    hole: [['J','♥'],['T','♥']], board: [['A','♥'],['8','♥'],['3','♦'],['K','♣']], street:'turn',
-    outs: 9, explanation: 'Flush draw on the turn (9 outs) — 9 hearts remain.'
-  },
-  {
-    hole: [['9','♠'],['8','♠']], board: [['7','♦'],['6','♥'],['A','♣'],['2','♠']], street:'turn',
-    outs: 8, explanation: 'Open-ended straight draw on the turn (8 outs) — any 5 or T.'
-  },
-  {
-    hole: [['T','♣'],['9','♥']], board: [['8','♦'],['7','♠'],['A','♥'],['2','♣']], street:'turn',
-    outs: 8, explanation: 'OESD on the turn (8 outs) — any 6 or any J completes it.'
-  },
-  {
-    hole: [['K','♦'],['Q','♣']], board: [['J','♥'],['9','♠'],['5','♦'],['3','♥']], street:'turn',
-    outs: 4, explanation: 'Gutshot on the turn (4 outs) — only a T completes it.'
-  },
-  {
-    hole: [['A','♥'],['J','♥']], board: [['T','♥'],['4','♥'],['2','♣'],['8','♦']], street:'turn',
-    outs: 9, explanation: 'Flush draw on the turn (9 outs) — 9 hearts remain.'
-  },
+// ── OUTS ─────────────────────────────────────────
+const OSC=[
+  // Flush draws (9 outs) - flop
+  {h:[["J","♥"],["T","♥"]],b:[["A","♥"],["8","♥"],["3","♦"]],st:"flop",outs:9,ex:"Flush draw (9 outs) — 9 hearts remain."},
+  {h:[["K","♠"],["Q","♠"]],b:[["J","♠"],["5","♠"],["2","♥"]],st:"flop",outs:9,ex:"Flush draw (9 outs) — 9 spades remain."},
+  {h:[["A","♦"],["T","♦"]],b:[["K","♦"],["7","♦"],["2","♠"]],st:"flop",outs:9,ex:"Flush draw (9 outs) — 9 diamonds remain."},
+  {h:[["7","♣"],["4","♣"]],b:[["K","♣"],["9","♣"],["2","♥"]],st:"flop",outs:9,ex:"Flush draw (9 outs) — 9 clubs remain."},
+  {h:[["Q","♥"],["8","♥"]],b:[["J","♥"],["5","♥"],["A","♠"]],st:"flop",outs:9,ex:"Flush draw (9 outs) — 9 hearts remain."},
+  {h:[["6","♦"],["3","♦"]],b:[["K","♦"],["9","♦"],["2","♣"]],st:"flop",outs:9,ex:"Flush draw (9 outs) — 9 diamonds remain."},
+  // OESD (8 outs) - flop
+  {h:[["9","♥"],["8","♦"]],b:[["7","♠"],["6","♣"],["A","♥"]],st:"flop",outs:8,ex:"OESD (8 outs) — any 5 or any T completes it."},
+  {h:[["T","♣"],["J","♥"]],b:[["9","♦"],["8","♠"],["2","♥"]],st:"flop",outs:8,ex:"OESD (8 outs) — any 7 or any Q."},
+  {h:[["6","♣"],["7","♥"]],b:[["8","♦"],["9","♠"],["A","♣"]],st:"flop",outs:8,ex:"OESD (8 outs) — any 5 or any T."},
+  {h:[["5","♦"],["6","♠"]],b:[["7","♥"],["8","♣"],["K","♦"]],st:"flop",outs:8,ex:"OESD (8 outs) — any 4 or any 9."},
+  {h:[["Q","♣"],["J","♠"]],b:[["T","♥"],["9","♦"],["2","♣"]],st:"flop",outs:8,ex:"OESD (8 outs) — any 8 or any K."},
+  {h:[["4","♠"],["5","♥"]],b:[["6","♦"],["7","♣"],["A","♠"]],st:"flop",outs:8,ex:"OESD (8 outs) — any 3 or any 8."},
+  // Gutshot (4 outs) - flop
+  {h:[["J","♦"],["T","♣"]],b:[["8","♥"],["7","♠"],["2","♦"]],st:"flop",outs:4,ex:"Gutshot (4 outs) — only a 9 completes it."},
+  {h:[["A","♣"],["Q","♥"]],b:[["K","♦"],["J","♠"],["5","♣"]],st:"flop",outs:4,ex:"Gutshot (4 outs) — only a T."},
+  {h:[["9","♠"],["6","♦"]],b:[["8","♥"],["7","♣"],["A","♠"]],st:"flop",outs:4,ex:"Gutshot (4 outs) — only a 5."},
+  {h:[["T","♥"],["7","♣"]],b:[["9","♦"],["8","♠"],["A","♥"]],st:"flop",outs:4,ex:"Gutshot (4 outs) — only a J."},
+  {h:[["5","♣"],["4","♥"]],b:[["3","♦"],["2","♠"],["K","♣"]],st:"flop",outs:4,ex:"Gutshot (4 outs) — only an A."},
+  // Flush + Gutshot (12 outs) - flop
+  {h:[["J","♥"],["9","♥"]],b:[["Q","♥"],["8","♥"],["2","♣"]],st:"flop",outs:12,ex:"Flush draw (9) + gutshot (4) — 1 overlap = 12 outs."},
+  {h:[["T","♦"],["8","♦"]],b:[["9","♦"],["7","♣"],["A","♦"]],st:"flop",outs:12,ex:"Flush draw (9) + gutshot (4) — 1 overlap = 12 outs."},
+  {h:[["K","♠"],["J","♠"]],b:[["Q","♠"],["9","♠"],["3","♥"]],st:"flop",outs:12,ex:"Flush draw (9) + gutshot needing T (4) — 1 overlap = 12 outs."},
+  // Flush + OESD (15 outs) - flop
+  {h:[["9","♦"],["8","♦"]],b:[["7","♦"],["6","♣"],["A","♦"]],st:"flop",outs:15,ex:"Flush draw (9) + OESD (8) — 2 overlap cards = 15 outs."},
+  {h:[["J","♠"],["T","♠"]],b:[["9","♠"],["8","♣"],["2","♠"]],st:"flop",outs:15,ex:"Flush draw (9) + OESD (8) — 2 overlap cards = 15 outs."},
+  {h:[["6","♥"],["7","♥"]],b:[["8","♥"],["9","♦"],["K","♥"]],st:"flop",outs:15,ex:"Flush draw (9) + OESD (8) — 2 overlap cards = 15 outs."},
+  {h:[["5","♣"],["6","♣"]],b:[["7","♣"],["8","♥"],["A","♣"]],st:"flop",outs:15,ex:"Flush draw (9) + OESD (8) — 2 overlap cards = 15 outs."},
+  // Two overcards (6 outs) - flop
+  {h:[["A","♣"],["K","♥"]],b:[["Q","♦"],["7","♠"],["3","♣"]],st:"flop",outs:6,ex:"Two overcards (6 outs) — 3 aces + 3 kings."},
+  {h:[["K","♦"],["Q","♣"]],b:[["J","♥"],["8","♠"],["3","♦"]],st:"flop",outs:6,ex:"Two overcards (6 outs) — 3 kings + 3 queens."},
+  {h:[["A","♥"],["Q","♦"]],b:[["J","♣"],["8","♥"],["5","♠"]],st:"flop",outs:6,ex:"Two overcards (6 outs) — 3 aces + 3 queens."},
+  {h:[["K","♣"],["J","♥"]],b:[["T","♦"],["7","♠"],["2","♣"]],st:"flop",outs:6,ex:"Two overcards (6 outs) — 3 kings + 3 jacks."},
+  // Pair to trips (2 outs) - flop
+  {h:[["A","♠"],["A","♣"]],b:[["K","♥"],["7","♦"],["3","♠"]],st:"flop",outs:2,ex:"Overpair: 2 outs to hit quads (2 remaining aces)."},
+  {h:[["T","♥"],["T","♦"]],b:[["A","♠"],["K","♣"],["7","♥"]],st:"flop",outs:2,ex:"Pocket pair: 2 outs to hit trips (2 remaining tens)."},
+  // Flush draws - turn
+  {h:[["J","♥"],["T","♥"]],b:[["A","♥"],["8","♥"],["3","♦"],["K","♣"]],st:"turn",outs:9,ex:"Flush draw on the turn (9 outs × 2 = ~18%)."},
+  {h:[["A","♦"],["T","♦"]],b:[["K","♦"],["7","♦"],["2","♠"],["J","♠"]],st:"turn",outs:9,ex:"Flush draw on the turn (9 outs × 2 = ~18%)."},
+  {h:[["K","♣"],["9","♣"]],b:[["Q","♣"],["5","♣"],["2","♥"],["8","♦"]],st:"turn",outs:9,ex:"Flush draw on the turn (9 outs × 2 = ~18%)."},
+  {h:[["6","♠"],["4","♠"]],b:[["K","♠"],["J","♠"],["3","♣"],["T","♥"]],st:"turn",outs:9,ex:"Flush draw on the turn (9 outs × 2 = ~18%)."},
+  {h:[["Q","♥"],["7","♥"]],b:[["A","♥"],["5","♥"],["2","♦"],["9","♠"]],st:"turn",outs:9,ex:"Flush draw on the turn (9 outs × 2 = ~18%)."},
+  // OESD - turn
+  {h:[["9","♠"],["8","♠"]],b:[["7","♦"],["6","♥"],["A","♣"],["2","♠"]],st:"turn",outs:8,ex:"OESD on the turn (8 outs × 2 = ~16%) — any 5 or T."},
+  {h:[["T","♣"],["9","♥"]],b:[["8","♦"],["7","♠"],["A","♥"],["2","♣"]],st:"turn",outs:8,ex:"OESD on the turn (8 outs × 2 = ~16%) — any 6 or J."},
+  {h:[["Q","♦"],["J","♠"]],b:[["T","♣"],["9","♥"],["3","♦"],["A","♣"]],st:"turn",outs:8,ex:"OESD on the turn (8 outs × 2 = ~16%) — any 8 or K."},
+  {h:[["5","♥"],["6","♣"]],b:[["7","♠"],["8","♦"],["K","♥"],["A","♣"]],st:"turn",outs:8,ex:"OESD on the turn (8 outs × 2 = ~16%) — any 4 or 9."},
+  // Gutshot - turn
+  {h:[["K","♦"],["Q","♣"]],b:[["J","♥"],["9","♠"],["5","♦"],["3","♥"]],st:"turn",outs:4,ex:"Gutshot on the turn (4 outs × 2 = ~8%) — only a T."},
+  {h:[["A","♣"],["J","♥"]],b:[["Q","♦"],["T","♠"],["4","♣"],["8","♥"]],st:"turn",outs:4,ex:"Gutshot on the turn (4 outs × 2 = ~8%) — only a K."},
+  {h:[["8","♠"],["5","♦"]],b:[["7","♥"],["6","♣"],["A","♠"],["K","♦"]],st:"turn",outs:4,ex:"Gutshot on the turn (4 outs × 2 = ~8%) — only a 9."},
+  // Flush + OESD - turn
+  {h:[["9","♣"],["8","♣"]],b:[["7","♣"],["6","♠"],["A","♣"],["2","♥"]],st:"turn",outs:15,ex:"Flush+OESD on turn (15 outs × 2 = ~30%)."},
+  {h:[["T","♦"],["9","♦"]],b:[["8","♦"],["7","♠"],["K","♦"],["2","♥"]],st:"turn",outs:15,ex:"Flush+OESD on turn (15 outs × 2 = ~30%)."},
 ];
 
-let outsStreet='flop', outsAnswered=false, currentScenario=null;
-
-function setStreet(s) {
-  outsStreet = s;
-  ['flop','turn','both'].forEach(x =>
-    document.getElementById('street'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active',x===s));
-  nextOuts();
+let otSt='flop',otDone=false,otUsed=new Set(),_ot=null;
+function setStreet(s){
+  otSt=s;['flop','turn','both'].forEach(x=>$('st'+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle('active',x===s));nextOuts();
 }
-
-function nextOuts() {
-  outsAnswered = false;
-  document.getElementById("outsFeedback").className = "feedback";
-  document.getElementById("outsFeedback").textContent = "";
-  document.getElementById("outsNextBtn").className = "next-btn";
-
-  // Filter by street
-  let pool = scenarios;
-  if (outsStreet==='flop') pool = scenarios.filter(s=>s.street==='flop');
-  else if (outsStreet==='turn') pool = scenarios.filter(s=>s.street==='turn');
-  currentScenario = pool[Math.floor(Math.random()*pool.length)];
-
-  const street = currentScenario.street;
-  const multiplier = street==='flop' ? 4 : 2;
-  const correctEquity = currentScenario.outs * multiplier;
-  currentScenario._multiplier = multiplier;
-  currentScenario._equity = correctEquity;
-
-  document.getElementById("drawStreetLabel").textContent = street.charAt(0).toUpperCase()+street.slice(1);
-
-  // Render hole cards
-  document.getElementById("holeCards").innerHTML =
-    currentScenario.hole.map(([r,s])=>mkCard(r,s)).join('');
-
-  // Render board cards
-  document.getElementById("boardCards").innerHTML =
-    currentScenario.board.map(([r,s])=>mkCard(r,s)).join('');
-
-  document.getElementById("drawSituation").textContent = '';
-
-  // Build MC options
-  const offsets = [-8,-6,-4,4,6,8,-10,10].sort(()=>Math.random()-0.5);
-  const options = new Set([correctEquity]);
-  for (const o of offsets) {
-    if (options.size>=4) break;
-    const v = Math.max(2,Math.min(70,correctEquity+o));
-    if (Math.abs(v-correctEquity)>=3) options.add(v);
-  }
-  const arr = [...options].sort((a,b)=>a-b);
-  const container = document.getElementById("outsOptions");
-  container.innerHTML = "";
-  arr.forEach(val => {
-    const btn = document.createElement("button");
-    btn.className = "mc-btn";
-    btn.textContent = "~"+val+"%";
-    btn.dataset.val = val;
-    btn.onclick = () => outsAnswer(val, correctEquity, btn);
-    container.appendChild(btn);
+function nextOuts(){
+  otDone=false;$('otFb').className='fb';$('otFb').textContent='';$('otNxt').className='nxt';$('otSit').textContent='';
+  let pool=OSC;
+  if(otSt==='flop')pool=OSC.filter(s=>s.st==='flop');
+  else if(otSt==='turn')pool=OSC.filter(s=>s.st==='turn');
+  const poolIdxs=OSC.map((s,i)=>pool.includes(s)?i:-1).filter(i=>i>=0);
+  const avail=poolIdxs.filter(i=>!otUsed.has(i));
+  if(avail.length===0)otUsed.clear();
+  const candidates=poolIdxs.filter(i=>!otUsed.has(i));
+  const pick=candidates[Math.floor(Math.random()*candidates.length)];
+  otUsed.add(pick);_ot=OSC[pick];
+  _ot._m=_ot.st==='flop'?4:2;_ot._eq=_ot.outs*_ot._m;
+  $('otSt').textContent=_ot.st.charAt(0).toUpperCase()+_ot.st.slice(1);
+  renderC('otHole',_ot.h);renderC('otBoard',_ot.b);
+  buildMC('otOpts',_ot._eq,(val,c,btn)=>{
+    if(otDone)return;otDone=true;const ok=Math.abs(val-c)<=2;rec('ot',ok);
+    document.querySelectorAll('#otOpts .mc-btn').forEach(b=>{if(Math.abs(parseInt(b.dataset.val)-c)<=2)b.classList.add('rev');});
+    btn.classList.add(ok?'ok':'bad');$('otSit').textContent=_ot.ex;
+    $('otFb').className='fb '+(ok?'cfb':'wfb')+' show';
+    $('otFb').textContent=ok?`✓ ${_ot.outs} outs × ${_ot._m} = ~${c}%`:`✗ Wrong. ${_ot.outs} outs × ${_ot._m} = ~${c}%`;
+    $('otNxt').className='nxt show';
   });
 }
 
-function outsAnswer(chosen, correct, btn) {
-  if (outsAnswered) return;
-  outsAnswered = true;
-  const isCorrect = Math.abs(chosen-correct)<=2;
-  recordScore('outs', isCorrect);
-  document.querySelectorAll('#outsOptions .mc-btn').forEach(b => {
-    if (Math.abs(parseInt(b.dataset.val)-correct)<=2) b.classList.add('reveal-correct');
-  });
-  btn.classList.add(isCorrect?'selected-correct':'selected-wrong');
-  document.getElementById("drawSituation").textContent = currentScenario.explanation;
-  const fb = document.getElementById("outsFeedback");
-  fb.className = "feedback "+(isCorrect?"correct-fb":"wrong-fb")+" show";
-  fb.textContent = isCorrect
-    ? `✓ Correct! ${currentScenario.outs} outs × ${currentScenario._multiplier} = ~${correct}% equity.`
-    : `✗ Wrong. ${currentScenario.outs} outs × ${currentScenario._multiplier} = ~${correct}% equity.`;
-  document.getElementById("outsNextBtn").className = "next-btn show";
+// ── DECISION ─────────────────────────────────────
+const DSC=[
+  // Calls
+  {h:[["J","♥"],["T","♥"]],b:[["A","♥"],["8","♥"],["3","♦"]],st:"flop",pot:80,bet:20,dec:"call",exp:"Flush draw = 9×4 = ~36%. Need $20/$100 = 20%. 36% > 20% — call."},
+  {h:[["9","♦"],["8","♦"]],b:[["7","♦"],["6","♣"],["A","♦"]],st:"flop",pot:60,bet:20,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $20/$80 = 25%. Easy call."},
+  {h:[["9","♥"],["8","♦"]],b:[["7","♠"],["6","♣"],["A","♥"]],st:"flop",pot:80,bet:30,dec:"call",exp:"OESD = 8×4 = ~32%. Need $30/$110 = 27%. Marginal call."},
+  {h:[["J","♠"],["T","♠"]],b:[["9","♠"],["8","♣"],["2","♠"]],st:"flop",pot:100,bet:25,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $25/$125 = 20%. Easy call."},
+  {h:[["K","♠"],["Q","♠"]],b:[["J","♠"],["5","♠"],["2","♥"]],st:"flop",pot:60,bet:15,dec:"call",exp:"Flush draw = 9×4 = ~36%. Need $15/$75 = 20%. Call."},
+  {h:[["J","♥"],["9","♥"]],b:[["Q","♥"],["8","♥"],["2","♣"]],st:"flop",pot:100,bet:33,dec:"call",exp:"Flush+gutshot = 12×4 = ~48%. Need $33/$133 = 25%. Call."},
+  {h:[["9","♠"],["8","♠"]],b:[["7","♦"],["6","♥"],["A","♣"],["2","♠"]],st:"turn",pot:80,bet:10,dec:"call",exp:"OESD turn = 8×2 = ~16%. Need $10/$90 = 11%. Call."},
+  {h:[["6","♣"],["7","♣"]],b:[["8","♣"],["9","♦"],["K","♣"]],st:"flop",pot:50,bet:10,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $10/$60 = 17%. Easy call."},
+  {h:[["A","♣"],["K","♥"]],b:[["Q","♦"],["7","♠"],["3","♣"]],st:"flop",pot:40,bet:10,dec:"call",exp:"Two overcards = 6×4 = ~24%. Need $10/$50 = 20%. Marginal call."},
+  {h:[["T","♥"],["J","♥"]],b:[["9","♥"],["8","♦"],["2","♥"]],st:"flop",pot:60,bet:15,dec:"call",exp:"Flush+gutshot = 12×4 = ~48%. Need $15/$75 = 20%. Call."},
+  {h:[["Q","♦"],["J","♦"]],b:[["T","♦"],["9","♦"],["2","♣"]],st:"flop",pot:80,bet:20,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $20/$100 = 20%. Call."},
+  {h:[["8","♠"],["7","♠"]],b:[["6","♠"],["5","♣"],["A","♠"]],st:"flop",pot:100,bet:30,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $30/$130 = 23%. Call."},
+  {h:[["9","♣"],["8","♣"]],b:[["7","♣"],["6","♠"],["A","♣"],["2","♥"]],st:"turn",pot:60,bet:10,dec:"call",exp:"Flush+OESD turn = 15×2 = ~30%. Need $10/$70 = 14%. Call."},
+  {h:[["T","♠"],["9","♠"]],b:[["8","♠"],["7","♣"],["2","♠"],["A","♥"]],st:"turn",pot:100,bet:20,dec:"call",exp:"Flush draw turn = 9×2 = ~18%. Need $20/$120 = 17%. Call."},
+  {h:[["5","♥"],["6","♥"]],b:[["7","♥"],["8","♦"],["K","♥"]],st:"flop",pot:40,bet:8,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $8/$48 = 17%. Easy call."},
+  {h:[["K","♦"],["Q","♦"]],b:[["J","♦"],["T","♣"],["2","♦"]],st:"flop",pot:80,bet:20,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $20/$100 = 20%. Call."},
+  // Folds
+  {h:[["J","♦"],["T","♣"]],b:[["8","♥"],["7","♠"],["2","♦"]],st:"flop",pot:100,bet:75,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $75/$175 = 43%. 16% < 43% — fold."},
+  {h:[["A","♣"],["Q","♥"]],b:[["K","♦"],["J","♠"],["5","♣"]],st:"flop",pot:120,bet:90,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $90/$210 = 43%. Fold."},
+  {h:[["K","♦"],["Q","♣"]],b:[["J","♥"],["9","♠"],["5","♦"],["3","♥"]],st:"turn",pot:100,bet:60,dec:"fold",exp:"Gutshot turn = 4×2 = ~8%. Need $60/$160 = 38%. Fold."},
+  {h:[["A","♣"],["K","♥"]],b:[["Q","♦"],["7","♠"],["3","♣"]],st:"flop",pot:80,bet:60,dec:"fold",exp:"Two overcards = 6×4 = ~24%. Need $60/$140 = 43%. Fold."},
+  {h:[["T","♣"],["J","♥"]],b:[["9","♦"],["8","♠"],["2","♥"]],st:"flop",pot:60,bet:50,dec:"fold",exp:"OESD = 8×4 = ~32%. Need $50/$110 = 45%. Fold."},
+  {h:[["9","♥"],["8","♦"]],b:[["7","♠"],["6","♣"],["A","♥"],["K","♦"]],st:"turn",pot:100,bet:70,dec:"fold",exp:"OESD turn = 8×2 = ~16%. Need $70/$170 = 41%. Fold."},
+  {h:[["J","♥"],["T","♥"]],b:[["A","♥"],["8","♥"],["3","♦"],["K","♣"]],st:"turn",pot:120,bet:80,dec:"fold",exp:"Flush turn = 9×2 = ~18%. Need $80/$200 = 40%. Fold."},
+  {h:[["A","♦"],["T","♦"]],b:[["K","♦"],["7","♦"],["2","♠"],["J","♣"]],st:"turn",pot:150,bet:100,dec:"fold",exp:"Flush turn = 9×2 = ~18%. Need $100/$250 = 40%. Fold."},
+  {h:[["K","♣"],["Q","♣"]],b:[["J","♣"],["9","♥"],["3","♣"]],st:"flop",pot:60,bet:55,dec:"fold",exp:"Flush draw = 9×4 = ~36%. Need $55/$115 = 48%. Fold."},
+  {h:[["5","♦"],["6","♦"]],b:[["7","♠"],["8","♥"],["A","♦"],["K","♣"]],st:"turn",pot:80,bet:65,dec:"fold",exp:"OESD turn = 8×2 = ~16%. Need $65/$145 = 45%. Fold."},
+  {h:[["J","♠"],["9","♣"]],b:[["T","♦"],["8","♥"],["2","♠"]],st:"flop",pot:80,bet:70,dec:"fold",exp:"OESD = 8×4 = ~32%. Need $70/$150 = 47%. Fold."},
+  {h:[["A","♥"],["Q","♣"]],b:[["K","♠"],["J","♦"],["5","♥"]],st:"flop",pot:100,bet:85,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $85/$185 = 46%. Fold."},
+  {h:[["T","♦"],["9","♦"]],b:[["8","♠"],["7","♥"],["3","♦"],["A","♣"]],st:"turn",pot:80,bet:75,dec:"fold",exp:"OESD turn = 8×2 = ~16%. Need $75/$155 = 48%. Fold."},
+  {h:[["K","♥"],["Q","♠"]],b:[["J","♦"],["9","♣"],["3","♥"]],st:"flop",pot:100,bet:90,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $90/$190 = 47%. Fold."},
+  {h:[["7","♠"],["5","♠"]],b:[["6","♣"],["4","♥"],["A","♠"],["K","♦"]],st:"turn",pot:120,bet:100,dec:"fold",exp:"Gutshot turn = 4×2 = ~8%. Need $100/$220 = 45%. Fold."},
+  // More calls
+  {h:[["A","♠"],["T","♠"]],b:[["K","♠"],["5","♠"],["2","♥"]],st:"flop",pot:50,bet:12,dec:"call",exp:"Flush draw = 9×4 = ~36%. Need $12/$62 = 19%. Call."},
+  {h:[["T","♦"],["8","♦"]],b:[["9","♦"],["7","♠"],["A","♦"]],st:"flop",pot:70,bet:18,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $18/$88 = 20%. Call."},
+  {h:[["J","♣"],["T","♣"]],b:[["9","♣"],["8","♥"],["3","♣"]],st:"flop",pot:90,bet:25,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $25/$115 = 22%. Call."},
+  {h:[["Q","♠"],["J","♠"]],b:[["T","♠"],["9","♣"],["4","♠"]],st:"flop",pot:80,bet:20,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $20/$100 = 20%. Call."},
+  {h:[["8","♥"],["7","♥"]],b:[["6","♥"],["5","♦"],["K","♥"]],st:"flop",pot:60,bet:12,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $12/$72 = 17%. Easy call."},
+  {h:[["K","♦"],["J","♦"]],b:[["Q","♦"],["9","♣"],["3","♦"]],st:"flop",pot:100,bet:22,dec:"call",exp:"Flush+gutshot = 12×4 = ~48%. Need $22/$122 = 18%. Call."},
+  {h:[["J","♥"],["T","♥"]],b:[["9","♥"],["8","♣"],["2","♥"]],st:"flop",pot:80,bet:18,dec:"call",exp:"Flush+gutshot = 12×4 = ~48%. Need $18/$98 = 18%. Call."},
+  {h:[["A","♣"],["Q","♣"]],b:[["K","♣"],["5","♣"],["2","♦"]],st:"flop",pot:60,bet:15,dec:"call",exp:"Flush draw = 9×4 = ~36%. Need $15/$75 = 20%. Call."},
+  {h:[["T","♠"],["9","♠"]],b:[["8","♠"],["7","♦"],["A","♠"]],st:"flop",pot:40,bet:8,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $8/$48 = 17%. Easy call."},
+  {h:[["6","♦"],["7","♦"]],b:[["8","♦"],["9","♣"],["2","♦"]],st:"flop",pot:50,bet:10,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $10/$60 = 17%. Easy call."},
+  {h:[["K","♥"],["Q","♥"]],b:[["J","♥"],["T","♦"],["2","♥"]],st:"flop",pot:120,bet:30,dec:"call",exp:"Flush+gutshot = 12×4 = ~48%. Need $30/$150 = 20%. Call."},
+  {h:[["A","♦"],["J","♦"]],b:[["T","♦"],["9","♠"],["3","♦"]],st:"flop",pot:80,bet:20,dec:"call",exp:"Flush+gutshot = 12×4 = ~48%. Need $20/$100 = 20%. Call."},
+  {h:[["Q","♣"],["T","♣"]],b:[["J","♣"],["9","♦"],["4","♣"]],st:"flop",pot:100,bet:28,dec:"call",exp:"Flush+OESD = 15×4 = ~60%. Need $28/$128 = 22%. Call."},
+  {h:[["8","♣"],["7","♣"]],b:[["6","♣"],["5","♠"],["K","♣"],["2","♥"]],st:"turn",pot:90,bet:15,dec:"call",exp:"Flush+OESD turn = 15×2 = ~30%. Need $15/$105 = 14%. Call."},
+  {h:[["A","♥"],["K","♥"]],b:[["Q","♥"],["5","♥"],["2","♣"],["9","♠"]],st:"turn",pot:100,bet:18,dec:"call",exp:"Flush draw turn = 9×2 = ~18%. Need $18/$118 = 15%. Call."},
+  {h:[["J","♦"],["T","♦"]],b:[["9","♦"],["8","♠"],["K","♦"],["2","♣"]],st:"turn",pot:80,bet:14,dec:"call",exp:"Flush+OESD turn = 15×2 = ~30%. Need $14/$94 = 15%. Call."},
+  {h:[["5","♠"],["6","♠"]],b:[["7","♠"],["8","♦"],["A","♠"],["3","♥"]],st:"turn",pot:60,bet:10,dec:"call",exp:"Flush+OESD turn = 15×2 = ~30%. Need $10/$70 = 14%. Easy call."},
+  {h:[["K","♠"],["J","♠"]],b:[["Q","♠"],["5","♠"],["2","♥"],["T","♣"]],st:"turn",pot:140,bet:25,dec:"call",exp:"Flush draw turn = 9×2 = ~18%. Need $25/$165 = 15%. Call."},
+  // More folds
+  {h:[["A","♠"],["Q","♦"]],b:[["K","♥"],["J","♣"],["5","♠"]],st:"flop",pot:80,bet:72,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $72/$152 = 47%. Fold."},
+  {h:[["Q","♥"],["J","♦"]],b:[["T","♣"],["8","♠"],["2","♥"]],st:"flop",pot:100,bet:88,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $88/$188 = 47%. Fold."},
+  {h:[["9","♣"],["8","♦"]],b:[["7","♥"],["6","♠"],["A","♣"],["K","♦"]],st:"turn",pot:80,bet:78,dec:"fold",exp:"OESD turn = 8×2 = ~16%. Need $78/$158 = 49%. Fold."},
+  {h:[["K","♣"],["T","♦"]],b:[["J","♠"],["9","♥"],["3","♣"],["A","♦"]],st:"turn",pot:100,bet:90,dec:"fold",exp:"Gutshot turn = 4×2 = ~8%. Need $90/$190 = 47%. Fold."},
+  {h:[["A","♥"],["J","♣"]],b:[["Q","♦"],["T","♠"],["7","♥"]],st:"flop",pot:60,bet:58,dec:"fold",exp:"Gutshot = 4×4 = ~16%. Need $58/$118 = 49%. Fold."},
+  {h:[["T","♠"],["8","♣"]],b:[["9","♦"],["7","♥"],["2","♠"],["A","♣"]],st:"turn",pot:120,bet:110,dec:"fold",exp:"OESD turn = 8×2 = ~16%. Need $110/$230 = 48%. Fold."},
+  {h:[["K","♦"],["Q","♥"]],b:[["J","♠"],["9","♣"],["4","♦"],["2","♥"]],st:"turn",pot:80,bet:80,dec:"fold",exp:"Gutshot turn = 4×2 = ~8%. Need $80/$160 = 50%. Fold."},
+  {h:[["A","♦"],["K","♣"]],b:[["Q","♠"],["7","♥"],["3","♦"]],st:"flop",pot:100,bet:80,dec:"fold",exp:"Two overcards = 6×4 = ~24%. Need $80/$180 = 44%. Fold."},
+  {h:[["J","♣"],["T","♦"]],b:[["8","♠"],["7","♥"],["2","♣"]],st:"flop",pot:90,bet:85,dec:"fold",exp:"OESD = 8×4 = ~32%. Need $85/$175 = 49%. Fold."},
+  {h:[["Q","♦"],["J","♣"]],b:[["T","♥"],["8","♠"],["3","♦"],["A","♣"]],st:"turn",pot:100,bet:95,dec:"fold",exp:"Gutshot turn = 4×2 = ~8%. Need $95/$195 = 49%. Fold."},
+  {h:[["6","♠"],["5","♥"]],b:[["4","♦"],["3","♣"],["A","♠"],["K","♥"]],st:"turn",pot:60,bet:58,dec:"fold",exp:"Gutshot turn = 4×2 = ~8%. Need $58/$118 = 49%. Fold."},
+];
+
+let dcDone=false,dcUsed=new Set(),_dc=null;
+function nextDc(){
+  dcDone=false;$('dcFb').className='fb';$('dcFb').textContent='';$('dcNxt').className='nxt';
+  $('dcBCall').disabled=false;$('dcBFold').disabled=false;
+  if(dcUsed.size>=DSC.length)dcUsed.clear();
+  let idx;do{idx=Math.floor(Math.random()*DSC.length);}while(dcUsed.has(idx));dcUsed.add(idx);
+  _dc=DSC[idx];
+  $('dcSt').textContent=_dc.st.charAt(0).toUpperCase()+_dc.st.slice(1);
+  renderC('dcHole',_dc.h);renderC('dcBoard',_dc.b);
+  $('dcPot').textContent='$'+_dc.pot;$('dcBet').textContent='$'+_dc.bet;$('dcTot').textContent='$'+(_dc.pot+_dc.bet*2);
+}
+function dcAns(ch){
+  if(dcDone)return;dcDone=true;const ok=ch===_dc.dec;rec('dc',ok);
+  $('dcBCall').disabled=true;$('dcBFold').disabled=true;
+  $('dcFb').className='fb '+(ok?'cfb':'wfb')+' show';
+  $('dcFb').textContent=(ok?'✓ Correct! ':'✗ Wrong. ')+_dc.exp;
+  $('dcNxt').className='nxt show';
 }
 
-// ── INIT ──────────────────────────────────────────
-nextHand();
-nextPotOdds();
-nextOuts();
+nextHand();nextPo();nextOuts();nextDc();
 </script>
 </body>
 </html>
