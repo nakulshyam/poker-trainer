@@ -164,7 +164,6 @@ header{width:100%;background:var(--surface);border-bottom:1px solid var(--b1);di
       <div class="h-pip">&#9824;</div>
       <div>
         <div class="h-title">POKER TRAINER</div>
-        
       </div>
     </div>
     <div class="h-right">
@@ -220,7 +219,8 @@ header{width:100%;background:var(--surface);border-bottom:1px solid var(--b1);di
   <div class="pobox">
     <div class="por"><div class="por-lbl">Pot size</div><div class="por-val gld" id="poPot">$80</div></div>
     <div class="por"><div class="por-lbl">Bet to call</div><div class="por-val gld" id="poBet">$40</div></div>
-    <div class="por"><div class="por-lbl">Total pot if you call</div><div class="por-val wht" id="poTot">$160</div></div>
+    <!-- FIX: Total pot if you call = pot + bet (villain's bet already in pot), not pot + bet*2 -->
+    <div class="por"><div class="por-lbl">Total pot if you call</div><div class="por-val wht" id="poTot">$120</div></div>
     <div class="por" id="poGivRow" style="display:none"><div class="por-lbl">Your equity</div><div class="por-val grn" id="poGiv">35%</div></div>
   </div>
   <div class="question" id="poQ">What % equity do you need to break even on a call?</div>
@@ -275,7 +275,8 @@ header{width:100%;background:var(--surface);border-bottom:1px solid var(--b1);di
   <div class="pobox">
     <div class="por"><div class="por-lbl">Pot size</div><div class="por-val gld" id="dcPot">$80</div></div>
     <div class="por"><div class="por-lbl">Villain bets</div><div class="por-val gld" id="dcBet">$40</div></div>
-    <div class="por"><div class="por-lbl">Total pot if you call</div><div class="por-val wht" id="dcTot">$160</div></div>
+    <!-- FIX: Total pot if you call = pot + bet, not pot + bet*2 -->
+    <div class="por"><div class="por-lbl">Total pot if you call</div><div class="por-val wht" id="dcTot">$120</div></div>
   </div>
   <div class="question">Count your outs, calculate your equity, compare to pot odds. Call or fold?</div>
   <div class="btns">
@@ -330,7 +331,9 @@ const CHARTS={
   MP: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","KQo","KJo","KTo","QJs","QTs","Q9s","Q8s","Q7s","QJo","QTo","JTs","J9s","J8s","JTo","T9s","T8s","98s","87s","76s","65s","54s"]),
   CO: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","KQo","KJo","KTo","K9o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","QJo","QTo","Q9o","JTs","J9s","J8s","J7s","JTo","J9o","T9s","T8s","T7s","T9o","98s","97s","87s","86s","76s","75s","65s","64s","54s","53s"]),
   BTN:new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"]),
-  SB: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","A4o","A3o","A2o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","K7o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","Q2s","QJo","QTo","Q9o","Q8o","JTs","J9s","J8s","J7s","J6s","J5s","J4s","JTo","J9o","J8o","T9s","T8s","T7s","T6s","T5s","T9o","T8o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","74s","65s","64s","63s","54s","53s","43s"])
+  // FIX: SB is slightly tighter than BTN — plays out of position postflop.
+  // Removed the weakest offsuit combos (A2o-A4o, K7o, Q8o, J8o, T8o) and some thin suited hands (J4s, T5s, 74s, 63s, 43s).
+  SB: new Set(["AA","KK","QQ","JJ","TT","99","88","77","66","55","44","33","22","AKs","AQs","AJs","ATs","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","AKo","AQo","AJo","ATo","A9o","A8o","A7o","A6o","A5o","KQs","KJs","KTs","K9s","K8s","K7s","K6s","K5s","K4s","K3s","K2s","KQo","KJo","KTo","K9o","K8o","QJs","QTs","Q9s","Q8s","Q7s","Q6s","Q5s","Q4s","Q3s","QJo","QTo","Q9o","JTs","J9s","J8s","J7s","J6s","J5s","JTo","J9o","T9s","T8s","T7s","T6s","T9o","98s","97s","96s","95s","98o","87s","86s","85s","76s","75s","65s","64s","54s","53s"])
 };
 const RANKS=["A","K","Q","J","T","9","8","7","6","5","4","3","2"];
 const ALL_HANDS=[];
@@ -391,7 +394,10 @@ function nextPo(){
   if(poUsed.size>=PO_SPOTS.length)poUsed.clear();
   let idx;do{idx=Math.floor(Math.random()*PO_SPOTS.length);}while(poUsed.has(idx));poUsed.add(idx);
   const spot=PO_SPOTS[idx];poCur={pot:spot.pot,bet:spot.bet,needed:spot.bet/(spot.pot+spot.bet)*100};
-  $('poPot').textContent='$'+poCur.pot;$('poBet').textContent='$'+poCur.bet;$('poTot').textContent='$'+(poCur.pot+poCur.bet*2);
+  $('poPot').textContent='$'+poCur.pot;
+  $('poBet').textContent='$'+poCur.bet;
+  // FIX: pot already includes villain's bet, so total = pot + your call (bet)
+  $('poTot').textContent='$'+(poCur.pot+poCur.bet);
   const c=Math.round(poCur.needed);
   if(poMode==='eq'){
     $('poGivRow').style.display='none';$('poOpts').style.display='grid';$('poCallBtns').style.display='none';
@@ -584,7 +590,10 @@ function nextDc(){
   _dc=DSC[idx];
   $('dcSt').textContent=_dc.st.charAt(0).toUpperCase()+_dc.st.slice(1);
   renderC('dcHole',_dc.h);renderC('dcBoard',_dc.b);
-  $('dcPot').textContent='$'+_dc.pot;$('dcBet').textContent='$'+_dc.bet;$('dcTot').textContent='$'+(_dc.pot+_dc.bet*2);
+  $('dcPot').textContent='$'+_dc.pot;
+  $('dcBet').textContent='$'+_dc.bet;
+  // FIX: Total pot if you call = pot + bet, not pot + bet*2
+  $('dcTot').textContent='$'+(_dc.pot+_dc.bet);
 }
 function dcAns(ch){
   if(dcDone)return;dcDone=true;const ok=ch===_dc.dec;rec('dc',ok);
